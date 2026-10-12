@@ -1,0 +1,689 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────────────────────────────
+   LordsPot design tokens — "Obsidian & Gold". Dark mode only, desktop only.
+
+   Change a colour here and the whole app follows. Tailwind turns every
+   --color-* below into utilities (bg-panel, text-fg-2, border-line, …).
+   ────────────────────────────────────────────────────────────────────────── */
+@theme static {
+  /* surfaces */
+  --color-bg: #07070d;
+  --color-panel: #0d0e18;
+  --color-panel-2: #12131f;
+  --color-raise: #181a2a;
+  --color-line: #1e2033;
+  --color-line-2: #2c2f4a;
+
+  /* text */
+  --color-fg: #ecebf6;
+  --color-fg-2: #9b9db9;
+  --color-fg-3: #62647f;
+
+  /* brand — royal gold */
+  --color-gold-300: #ffdc8f;
+  --color-gold-400: #fbc860;
+  --color-gold-500: #f3b13a;
+  --color-gold-600: #c98a1a;
+
+  /* secondary accent — iris */
+  --color-iris: #8f7fff;
+
+  /* market semantics */
+  --color-up: #34dfa2;
+  --color-up-dim: #168a63;
+  --color-down: #ff5c7c;
+  --color-down-dim: #a23a52;
+
+  /* ── motion ──────────────────────────────────────────────────────────────
+     One easing family for the whole app. `smooth` is a fast-out / slow-settle
+     curve: things arrive quickly and land softly. Every plain `transition`
+     utility in the project now uses it (see the two defaults below). */
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --default-transition-duration: 220ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-fade-up: fade-up 0.8s var(--ease-smooth) both;
+  --animate-fade-in: fade-in 0.3s var(--ease-smooth) both;
+  --animate-swap: swap 0.34s var(--ease-smooth) both;
+  --animate-pop-in: pop-in 0.24s var(--ease-smooth) both;
+  --animate-marquee: marquee 70s linear infinite;
+  --animate-drift: drift 16s var(--ease-soft) infinite alternate;
+}
+
+/* Fonts are injected by next/font in app/layout.tsx as CSS variables. */
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: var(--font-instrument), "Iowan Old Style", Georgia, serif;
+}
+
+/* ──────────────────────────────── keyframes ──────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+/* content swapping inside a panel (tab / order-type change) */
+@keyframes swap {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+@keyframes drift {
+  from { transform: translate3d(-3%, 0, 0) scale(1); }
+  to { transform: translate3d(3%, 4%, 0) scale(1.08); }
+}
+@keyframes sweep {
+  to { transform: translateX(100%); }
+}
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes overlay-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(-14px) scale(0.965); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes dialog-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-8px) scale(0.98); }
+}
+@keyframes row-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ───────────────────────────────── base ───────────────────────────────── */
+@layer base {
+  :root {
+    --gold-line: linear-gradient(90deg, var(--color-gold-300), var(--color-gold-600));
+  }
+
+  html {
+    color-scheme: dark;
+    background: var(--color-bg);
+    -webkit-text-size-adjust: 100%;
+    /* Desktop web app: below this width the page scrolls sideways instead of re-flowing. */
+    min-width: 1024px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  button { cursor: pointer; font: inherit; color: inherit; }
+  button:disabled { cursor: not-allowed; }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: rgb(143 127 255 / 0.35); color: #fff; }
+  ::placeholder { color: var(--color-fg-3); }
+
+  :focus-visible {
+    outline: 2px solid rgb(243 177 58 / 0.7);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* thin dark scrollbars */
+  * { scrollbar-width: thin; scrollbar-color: var(--color-line-2) transparent; }
+  *::-webkit-scrollbar { width: 8px; height: 8px; }
+  *::-webkit-scrollbar-thumb { background: var(--color-line-2); border-radius: 8px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      animation-delay: 0s !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+/* ───────────────────────────── shared components ──────────────────────────── */
+@layer components {
+  /* Monospace, tabular figures — every price / size / total uses this. */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.015em;
+  }
+
+  /* Surface card used by every panel on the terminal. */
+  .panel {
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.025), rgb(255 255 255 / 0) 140px),
+      var(--color-panel);
+    border: 1px solid var(--color-line);
+    border-radius: 14px;
+    transition: border-color 0.3s var(--ease-smooth);
+  }
+
+  /* Placeholder block while a panel's data is loading. */
+  .skeleton { position: relative; overflow: hidden; }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.05) 50%, transparent 80%);
+    transform: translateX(-100%);
+    animation: sweep 1.8s var(--ease-soft) infinite;
+  }
+
+  /* ── Buttons ───────────────────────────────────────────────────────────── */
+  .btn {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    user-select: none;
+    transition:
+      transform 0.25s var(--ease-smooth),
+      background-color 0.25s var(--ease-smooth),
+      border-color 0.25s var(--ease-smooth),
+      box-shadow 0.35s var(--ease-smooth),
+      color 0.2s var(--ease-smooth),
+      filter 0.25s var(--ease-smooth);
+  }
+  .btn:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn:active:not(:disabled) { transform: translateY(0) scale(0.985); transition-duration: 0.08s; }
+  .btn:disabled { opacity: 0.5; }
+
+  .btn-lg { height: 48px; padding: 0 20px; font-size: 15px; border-radius: 12px; }
+  .btn-sm { height: 30px; padding: 0 12px; font-size: 13px; border-radius: 8px; }
+
+  /* Primary — royal gold, with a light sweep on hover. */
+  .btn-primary {
+    color: #1a1206;
+    background: linear-gradient(180deg, var(--color-gold-300), var(--color-gold-500) 55%, var(--color-gold-600));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 6px 20px -8px rgb(243 177 58 / 0.55);
+  }
+  .btn-primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(105deg, transparent 32%, rgb(255 255 255 / 0.4) 50%, transparent 68%);
+    transform: translateX(-130%);
+    transition: transform 0.8s var(--ease-smooth);
+  }
+  .btn-primary:hover:not(:disabled) {
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 12px 30px -8px rgb(243 177 58 / 0.7);
+  }
+  .btn-primary:hover:not(:disabled)::after { transform: translateX(130%); }
+  /* a primary button inside a hovered group (e.g. the hero search) sweeps too */
+  :where(.group):hover .btn-primary::after { transform: translateX(130%); }
+
+  /* Secondary — outlined surface. */
+  .btn-secondary {
+    color: var(--color-fg);
+    background: var(--color-raise);
+    border-color: var(--color-line-2);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: #1f2236;
+    border-color: #3a3e60;
+  }
+
+  /* Ghost — text only. */
+  .btn-ghost { color: var(--color-fg-2); background: transparent; }
+  .btn-ghost:hover:not(:disabled) { color: var(--color-fg); background: rgb(255 255 255 / 0.05); }
+
+  /* Buy / Sell. */
+  .btn-up {
+    color: #04150e;
+    background: linear-gradient(180deg, #5cf0bb, var(--color-up));
+    box-shadow: 0 6px 20px -8px rgb(52 223 162 / 0.6);
+  }
+  .btn-up:hover:not(:disabled) { filter: brightness(1.07); box-shadow: 0 12px 28px -8px rgb(52 223 162 / 0.7); }
+  .btn-down {
+    color: #1f040c;
+    background: linear-gradient(180deg, #ff8aa1, var(--color-down));
+    box-shadow: 0 6px 20px -8px rgb(255 92 124 / 0.6);
+  }
+  .btn-down:hover:not(:disabled) { filter: brightness(1.07); box-shadow: 0 12px 28px -8px rgb(255 92 124 / 0.7); }
+
+  /* Square icon button (toolbars, header). */
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    color: var(--color-fg-3);
+    transition:
+      color 0.2s var(--ease-smooth),
+      background-color 0.2s var(--ease-smooth),
+      transform 0.2s var(--ease-spring);
+  }
+  .icon-btn:hover { color: var(--color-fg); background: rgb(255 255 255 / 0.06); }
+  .icon-btn:active { transform: scale(0.9); transition-duration: 0.08s; }
+  .icon-btn[data-active="true"] { color: var(--color-gold-400); }
+
+  /* ── Tabs ──────────────────────────────────────────────────────────────── */
+  /* The active marker is a single element (.tab-bar) that glides between tabs.
+     Before JS has measured the tabs, the active tab draws its own marker so
+     there is never a flash of "no selection". */
+  .tab-list { position: relative; }
+
+  .tab-bar {
+    position: absolute;
+    left: 0;
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, width;
+    transition:
+      transform 0.45s var(--ease-smooth),
+      width 0.45s var(--ease-smooth),
+      opacity 0.25s var(--ease-smooth);
+  }
+  .tab-bar[data-variant="underline"] {
+    bottom: -1px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--gold-line);
+    box-shadow: 0 0 14px rgb(243 177 58 / 0.6);
+  }
+  .tab-bar[data-variant="pill"] {
+    top: 0;
+    bottom: 0;
+    border-radius: 8px;
+    background: var(--color-raise);
+    box-shadow: inset 0 0 0 1px var(--color-line-2);
+  }
+
+  /* Underline tabs: sit on a row that has a bottom border. */
+  .tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-fg-3);
+    white-space: nowrap;
+    transition: color 0.25s var(--ease-smooth);
+  }
+  .tab:hover { color: var(--color-fg-2); }
+  .tab[data-active="true"] { color: var(--color-fg); }
+  .tab-list:not([data-ready]) .tab[data-active="true"]::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: -1px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--gold-line);
+    box-shadow: 0 0 14px rgb(243 177 58 / 0.6);
+  }
+
+  /* Pill tabs: order type, All / Watchlist, … */
+  .pill-tab {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-fg-3);
+    white-space: nowrap;
+    transition: color 0.25s var(--ease-smooth);
+  }
+  .pill-tab:hover { color: var(--color-fg-2); }
+  .pill-tab[data-active="true"] { color: var(--color-fg); }
+  .tab-list:not([data-ready]) .pill-tab[data-active="true"] {
+    background: var(--color-raise);
+    box-shadow: inset 0 0 0 1px var(--color-line-2);
+  }
+
+  /* Buy / Sell switch: one thumb slides and re-tints. */
+  .side-toggle {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-line);
+  }
+  .side-thumb {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc((100% - 12px) / 2);
+    border-radius: 9px;
+    background: rgb(52 223 162 / 0.15);
+    box-shadow: inset 0 0 0 1px rgb(52 223 162 / 0.4), 0 0 24px -6px rgb(52 223 162 / 0.45);
+    transition:
+      transform 0.45s var(--ease-smooth),
+      background-color 0.35s var(--ease-smooth),
+      box-shadow 0.35s var(--ease-smooth);
+  }
+  .side-toggle[data-side="sell"] .side-thumb {
+    transform: translateX(calc(100% + 4px));
+    background: rgb(255 92 124 / 0.15);
+    box-shadow: inset 0 0 0 1px rgb(255 92 124 / 0.4), 0 0 24px -6px rgb(255 92 124 / 0.45);
+  }
+  .side-toggle > button {
+    position: relative;
+    z-index: 1;
+    height: 40px;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: capitalize;
+    color: var(--color-fg-3);
+    transition: color 0.3s var(--ease-smooth);
+  }
+  .side-toggle > button:hover { color: var(--color-fg-2); }
+  .side-toggle > button[aria-selected="true"][data-side="buy"] { color: var(--color-up); }
+  .side-toggle > button[aria-selected="true"][data-side="sell"] { color: var(--color-down); }
+
+  /* ── Inputs ────────────────────────────────────────────────────────────── */
+  .field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-line);
+    border-radius: 10px;
+    transition:
+      border-color 0.25s var(--ease-smooth),
+      box-shadow 0.35s var(--ease-smooth),
+      background-color 0.25s var(--ease-smooth);
+  }
+  .field:hover { border-color: var(--color-line-2); }
+  .field:focus-within {
+    border-color: rgb(243 177 58 / 0.7);
+    background: #090a12;
+    box-shadow: 0 0 0 3px rgb(243 177 58 / 0.12), 0 8px 24px -12px rgb(243 177 58 / 0.4);
+  }
+  .field input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+  }
+  .field input:focus-visible { outline: none; }
+
+  /* Keyboard key chip. */
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 6px;
+    background: var(--color-raise);
+    border: 1px solid var(--color-line-2);
+    border-bottom-width: 2px;
+    color: var(--color-fg-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  /* Dashed underline used for tooltip-able labels (Post Only, IOC, …). */
+  .hint {
+    border-bottom: 1px dashed var(--color-fg-3);
+    cursor: help;
+  }
+
+  /* ── Range slider (order form) ─────────────────────────────────────────── */
+  .range {
+    --accent: var(--color-up);
+    --thumb: 14px;
+    position: relative;
+    height: 22px;
+  }
+  .range[data-accent="down"] { --accent: var(--color-down); }
+  .range[data-accent="gold"] { --accent: var(--color-gold-400); }
+  .range-rail,
+  .range-fill {
+    position: absolute;
+    top: 50%;
+    height: 4px;
+    border-radius: 4px;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .range-rail { left: 0; right: 0; background: var(--color-raise); }
+  .range-fill {
+    left: 0;
+    width: calc(var(--thumb) / 2 + (100% - var(--thumb)) * var(--pct) / 100);
+    background: var(--accent);
+    transition: background-color 0.35s var(--ease-smooth);
+  }
+  .range-stop {
+    position: absolute;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--color-panel);
+    border: 1.5px solid var(--color-line-2);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    transition: border-color 0.3s var(--ease-smooth), background-color 0.3s var(--ease-smooth);
+  }
+  .range-stop[data-on="true"] { border-color: var(--accent); background: var(--accent); }
+  .range input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 22px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  .range input[type="range"]::-webkit-slider-runnable-track { height: 22px; background: transparent; }
+  .range input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: var(--thumb);
+    height: var(--thumb);
+    margin-top: calc((22px - var(--thumb)) / 2);
+    border-radius: 999px;
+    background: var(--accent);
+    border: 3px solid var(--color-panel);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 14px color-mix(in srgb, var(--accent) 60%, transparent);
+    transition: transform 0.2s var(--ease-spring), box-shadow 0.3s var(--ease-smooth);
+  }
+  .range input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.14); }
+  .range input[type="range"]:active::-webkit-slider-thumb {
+    transform: scale(1.22);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 22px color-mix(in srgb, var(--accent) 75%, transparent);
+  }
+  .range input[type="range"]::-moz-range-track { height: 22px; background: transparent; }
+  .range input[type="range"]::-moz-range-thumb {
+    width: calc(var(--thumb) - 6px);
+    height: calc(var(--thumb) - 6px);
+    border-radius: 999px;
+    background: var(--accent);
+    border: 3px solid var(--color-panel);
+    box-shadow: 0 0 0 1px var(--accent);
+    transition: transform 0.2s var(--ease-spring);
+  }
+  .range input[type="range"]:hover::-moz-range-thumb { transform: scale(1.14); }
+
+  /* ── Market search palette ─────────────────────────────────────────────── */
+  .palette-overlay {
+    background: rgb(3 3 8 / 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: overlay-in 0.22s var(--ease-smooth) both;
+  }
+  .palette-overlay[data-state="closed"] {
+    animation: overlay-out 0.17s var(--ease-smooth) both;
+    pointer-events: none;
+  }
+  .palette-dialog { animation: dialog-in 0.34s var(--ease-smooth) both; }
+  .palette-overlay[data-state="closed"] .palette-dialog {
+    animation: dialog-out 0.17s var(--ease-smooth) both;
+  }
+
+  /* One highlight that glides to the active row (position is set from JS via CSS vars). */
+  .palette-list { position: relative; scroll-behavior: smooth; }
+  .palette-glide {
+    position: absolute;
+    top: 0;
+    left: 12px;
+    right: 12px;
+    height: var(--glide-h, 0px);
+    transform: translateY(var(--glide-y, 0px));
+    opacity: var(--glide-o, 0);
+    border-radius: 16px;
+    background: var(--color-raise);
+    box-shadow: inset 0 0 0 1px rgb(243 177 58 / 0.26), 0 10px 28px -14px rgb(0 0 0 / 0.9);
+    pointer-events: none;
+    transition:
+      transform 0.28s var(--ease-smooth),
+      height 0.28s var(--ease-smooth),
+      opacity 0.2s var(--ease-smooth);
+  }
+  /* staggered entrance, first open only */
+  .palette-row[data-intro="true"] {
+    animation: row-in 0.45s var(--ease-smooth) both;
+    animation-delay: calc(min(var(--i, 0), 9) * 26ms + 90ms);
+  }
+
+  /* ── Marketing bits (landing page) ─────────────────────────────────────── */
+  .hero-grid {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
+  }
+  .gold-text {
+    background: linear-gradient(100deg, var(--color-gold-300), var(--color-gold-500) 50%, var(--color-gold-300));
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gold-shine 6s var(--ease-soft) infinite alternate;
+  }
+  @keyframes gold-shine {
+    from { background-position: 0% 50%; }
+    to { background-position: 100% 50%; }
+  }
+
+  /* Fade-up as the element scrolls into view (progressive enhancement; no JS). */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: fade-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+
+  /* Horizontal scrollers that should scroll without showing a bar (toolbars). */
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+/* ─────────────────────────── trade terminal grid ──────────────────────────
+   Placement mirrors the reference exchange:
+
+       ┌────────── ticker ──────────┐ ┌────────┐
+       │ chart panel   │ order book │ │  order │
+       └───────────────┴────────────┘ │  form  │
+                                      └────────┘
+
+   Desktop only. The grid fills the viewport under the 56px top bar and
+   stays fluid from 1024px up; the side columns widen on bigger monitors.
+   ────────────────────────────────────────────────────────────────────────── */
+.terminal {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  height: calc(100dvh - 56px);
+  min-height: 620px;
+  grid-template-columns: minmax(0, 1fr) 248px 280px;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    "ticker ticker form"
+    "chart  book   form";
+}
+/* panels rise in one after another */
+.terminal > * {
+  animation: rise 0.65s var(--ease-smooth) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+.t-ticker { grid-area: ticker; --i: 0; }
+.t-chart { grid-area: chart; --i: 1; }
+.t-book { grid-area: book; --i: 2; }
+.t-form { grid-area: form; --i: 3; align-self: start; max-height: 100%; overflow-y: auto; }
+
+@media (min-width: 1280px) {
+  .terminal { grid-template-columns: minmax(0, 1fr) 288px 320px; }
+}
+@media (min-width: 1536px) {
+  .terminal { grid-template-columns: minmax(0, 1fr) 320px 344px; }
+}
+@media (min-width: 1920px) {
+  .terminal {
+    gap: 10px;
+    padding: 10px;
+    grid-template-columns: minmax(0, 1fr) 360px 384px;
+  }
+}
