@@ -1,23 +1,25 @@
 import Link from "next/link";
-import { DEFAULT_MARKET, tradeHref } from "@/lib/config";
+import { OpenPaletteButton } from "@/components/search/OpenPaletteButton";
 import { Logo } from "@/components/ui/Logo";
 
 /**
- * Landing-page header.
+ * Landing-page header. "Trade" opens the market search (there is no default market).
  * TODO(api): hook Log in / Sign up to your auth flow.
  */
 export function LandingNav() {
   return (
     <header className="sticky top-0 z-30 border-b border-line/60 bg-bg/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-5">
-        <Link href="/" aria-label="LordsPot home" className="rounded-lg transition-opacity duration-200 hover:opacity-80 active:opacity-60">
+        <Link
+          href="/"
+          aria-label="LordsPot home"
+          className="rounded-lg transition-opacity duration-200 hover:opacity-80 active:opacity-60"
+        >
           <Logo />
         </Link>
 
         <nav aria-label="Main" className="flex items-center gap-1">
-          <Link href={tradeHref(DEFAULT_MARKET)} className="btn btn-ghost btn-sm">
-            Trade
-          </Link>
+          <OpenPaletteButton className="btn btn-ghost btn-sm">Trade</OpenPaletteButton>
           <a href="#markets" className="btn btn-ghost btn-sm">
             Markets
           </a>

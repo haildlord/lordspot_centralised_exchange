@@ -1,8 +1,12 @@
 import type { Market } from "@/lib/types";
-import { TREND_TEXT, trendOf } from "@/lib/format";
+import { TREND_TEXT } from "@/components/ui/trend";
 
-/** Endless price marquee. The list is rendered twice so the -50% loop is seamless. */
-export function TickerTape({ markets }: { markets: Market[] }) {
+/**
+ * Endless price marquee. The list is rendered twice so the -50% loop is seamless.
+ * Renders nothing until it has markets.
+ */
+export function TickerTape({ markets = [] }: { markets?: Market[] }) {
+  if (markets.length === 0) return null;
   const items = [...markets, ...markets];
   return (
     <div
@@ -16,7 +20,7 @@ export function TickerTape({ markets }: { markets: Market[] }) {
               {m.base}/{m.quote}
             </span>
             <span className="num text-fg-2">{m.lastPrice}</span>
-            <span className={`num ${TREND_TEXT[trendOf(m.changePct)]}`}>{m.changePct}</span>
+            <span className={`num ${TREND_TEXT[m.trend]}`}>{m.changePct}</span>
           </div>
         ))}
       </div>

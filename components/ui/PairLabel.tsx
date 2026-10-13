@@ -1,7 +1,7 @@
 import type { Market } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
-/** "SOL/USD" with a bold base and muted quote; perps render as "SOL-PERP". */
+/** "BASE/QUOTE" with a bold base and muted quote; perps render as "BASE-PERP". */
 export function PairLabel({
   market,
   className,

@@ -2,7 +2,6 @@
 
 import { useId, useState, type ReactNode } from "react";
 import { ArrowLeftRight, ChevronDown } from "lucide-react";
-import type { Market } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Menu } from "@/components/ui/Menu";
@@ -23,8 +22,6 @@ export interface OrderDraft {
   orderValue: string;
   /** 0–100 from the slider. */
   percent: number;
-  postOnly: boolean;
-  ioc: boolean;
   triggerType: TriggerType;
   triggerPrice: string;
   /** Conditional orders: also set a limit price once triggered. */
@@ -34,10 +31,14 @@ export interface OrderDraft {
 }
 
 interface OrderFormProps {
-  market: Market;
+  /** Asset codes, used for the input icons and the button label. Placeholders until provided. */
+  base?: string;
+  quote?: string;
   isAuthenticated?: boolean;
   /** Free balance shown under the tabs. "-" while logged out. */
   balance?: string;
+  /** Value shown on the Max Slippage row of market orders. */
+  maxSlippage?: string;
   onSubmit?: (order: OrderDraft) => void;
   onSignUp?: () => void;
   onLogIn?: () => void;
@@ -71,12 +72,14 @@ const cleanNumber = (v: string) => v.replace(/[^0-9.]/g, "").replace(/(\..*)\./g
  * Quantity ↔ order value ↔ slider are deliberately NOT linked — wire your maths in `onSubmit`
  * or by lifting the state up.
  *
- * TODO(api): balance, price presets (Mid / BBO), submit, and the auth buttons.
+ * TODO(api): balance, slippage, price presets (Mid / BBO), submit, and the auth buttons.
  */
 export function OrderForm({
-  market,
+  base,
+  quote,
   isAuthenticated = false,
   balance = "-",
+  maxSlippage = "—",
   onSubmit,
   onSignUp,
   onLogIn,
@@ -85,20 +88,18 @@ export function OrderForm({
   const uid = useId();
   const [side, setSide] = useState<OrderSide>("buy");
   const [type, setType] = useState<OrderType>("limit");
-  const [price, setPrice] = useState(market.lastPrice.replaceAll(",", ""));
+  const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [orderValue, setOrderValue] = useState("");
   const [percent, setPercent] = useState(0);
-  const [postOnly, setPostOnly] = useState(false);
-  const [ioc, setIoc] = useState(false);
   const [triggerType, setTriggerType] = useState<TriggerType>("mark");
   const [triggerPrice, setTriggerPrice] = useState("");
   const [useLimitPrice, setUseLimitPrice] = useState(false);
   const [valueInQuote, setValueInQuote] = useState(true);
 
   const accent = side === "buy" ? "up" : "down";
-  const quoteIcon = <TokenAvatar symbol={market.quote} size={24} />;
-  const baseIcon = <TokenAvatar symbol={market.base} size={24} />;
+  const quoteIcon = <TokenAvatar symbol={quote ?? ""} size={24} />;
+  const baseIcon = <TokenAvatar symbol={base ?? ""} size={24} />;
 
   const priceField = (
     <Field
@@ -146,8 +147,6 @@ export function OrderForm({
           quantity,
           orderValue,
           percent,
-          postOnly,
-          ioc,
           triggerType,
           triggerPrice,
           useLimitPrice,
@@ -221,7 +220,7 @@ export function OrderForm({
                   </button>
                 </span>
               }
-              right={<span className="num text-fg-3">≈ 0 {valueInQuote ? market.base : market.quote}</span>}
+              right={<span className="num text-fg-3">≈ —</span>}
               value={orderValue}
               onChange={setOrderValue}
               addon={valueInQuote ? quoteIcon : baseIcon}
@@ -230,7 +229,7 @@ export function OrderForm({
             <div className="flex items-center justify-between text-[12px]">
               <span className="text-fg-3">Max Slippage</span>
               <button type="button" className="num font-medium text-iris hover:underline">
-                1%
+                {maxSlippage}
               </button>
             </div>
           </>
@@ -265,7 +264,7 @@ export function OrderForm({
             <Field
               id={`${uid}-qty`}
               label="Quantity"
-              right={<span className="num text-fg-3">≈ 0.00000 {market.quote}</span>}
+              right={<span className="num text-fg-3">≈ —</span>}
               value={quantity}
               onChange={setQuantity}
               addon={baseIcon}
@@ -279,7 +278,7 @@ export function OrderForm({
       {/* ── actions ── */}
       {isAuthenticated ? (
         <button type="submit" className={cn("btn btn-lg w-full", side === "buy" ? "btn-up" : "btn-down")}>
-          {side === "buy" ? "Buy" : "Sell"} {market.base}
+          {side === "buy" ? "Buy" : "Sell"} {base}
         </button>
       ) : (
         <div className="flex flex-col gap-2">
@@ -289,13 +288,6 @@ export function OrderForm({
           <button type="button" onClick={onLogIn} className="btn btn-secondary btn-lg w-full">
             Log in to trade
           </button>
-        </div>
-      )}
-
-      {type === "limit" && (
-        <div className="flex items-center gap-5">
-          <Checkbox label="Post Only" checked={postOnly} onChange={setPostOnly} />
-          <Checkbox label="IOC" checked={ioc} onChange={setIoc} />
         </div>
       )}
       {type === "conditional" && (

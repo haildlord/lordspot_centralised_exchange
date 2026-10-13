@@ -1,11 +1,10 @@
 import Link from "next/link";
 import type { Market } from "@/lib/types";
-import { tradeHref } from "@/lib/config";
-import { TREND_TEXT, trendOf } from "@/lib/format";
 import { SearchTrigger } from "@/components/search/SearchTrigger";
+import { TREND_TEXT } from "@/components/ui/trend";
 
-/** Headline + the big market search. `trending` is a short list of quick-jump chips. */
-export function Hero({ trending }: { trending: Market[] }) {
+/** Headline + the big market search. `trending` is a short list of quick-jump chips (hidden when empty). */
+export function Hero({ trending = [] }: { trending?: Market[] }) {
   return (
     <section className="relative isolate overflow-hidden">
       {/* backdrop */}
@@ -46,24 +45,26 @@ export function Hero({ trending }: { trending: Market[] }) {
           <SearchTrigger variant="hero" />
         </div>
 
-        <div
-          className="animate-fade-up mt-6 flex flex-wrap items-center justify-center gap-2 text-[13px]"
-          style={{ animationDelay: "320ms" }}
-        >
-          <span className="mr-1 text-fg-3">Trending</span>
-          {trending.map((m) => (
-            <Link
-              key={m.symbol}
-              href={tradeHref(m.symbol)}
-              className="inline-flex items-center gap-2 rounded-full border border-line bg-panel/60 px-3.5 py-1.5 transition duration-300 hover:-translate-y-0.5 hover:border-gold-500/40 hover:bg-raise"
-            >
-              <span className="font-medium text-fg">
-                {m.base}/{m.quote}
-              </span>
-              <span className={`num ${TREND_TEXT[trendOf(m.changePct)]}`}>{m.changePct}</span>
-            </Link>
-          ))}
-        </div>
+        {trending.length > 0 && (
+          <div
+            className="animate-fade-up mt-6 flex flex-wrap items-center justify-center gap-2 text-[13px]"
+            style={{ animationDelay: "320ms" }}
+          >
+            <span className="mr-1 text-fg-3">Trending</span>
+            {trending.map((m) => (
+              <Link
+                key={m.symbol}
+                href={`/trade/${m.symbol}`}
+                className="inline-flex items-center gap-2 rounded-full border border-line bg-panel/60 px-3.5 py-1.5 transition duration-300 hover:-translate-y-0.5 hover:border-gold-500/40 hover:bg-raise"
+              >
+                <span className="font-medium text-fg">
+                  {m.base}/{m.quote}
+                </span>
+                <span className={`num ${TREND_TEXT[m.trend]}`}>{m.changePct}</span>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

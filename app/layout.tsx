@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { PaletteProvider } from "@/components/search/PaletteProvider";
-import { MARKETS } from "@/lib/mock";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,8 +42,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} ${instrument.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-bg text-fg">
-        {/* TODO(api): swap MARKETS for your real market list (see lib/mock.ts). */}
-        <PaletteProvider markets={MARKETS}>{children}</PaletteProvider>
+        {/* TODO(api): pass `markets` to PaletteProvider once you have the list. */}
+        <PaletteProvider>{children}</PaletteProvider>
       </body>
     </html>
   );

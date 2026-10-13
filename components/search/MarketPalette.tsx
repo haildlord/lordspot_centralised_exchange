@@ -24,12 +24,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Market } from "@/lib/types";
-import { tradeHref } from "@/lib/config";
 import { cn } from "@/lib/cn";
-import { TREND_TEXT, trendOf } from "@/lib/format";
 import { PairLabel } from "@/components/ui/PairLabel";
 import { Tabs } from "@/components/ui/Tabs";
 import { TokenAvatar } from "@/components/ui/TokenAvatar";
+import { TREND_TEXT } from "@/components/ui/trend";
 
 type CategoryId = "all" | "stocks" | "crypto" | "perps";
 type Scope = "all" | "watchlist";
@@ -146,7 +145,7 @@ export function MarketPalette({
     });
   }
   function open(market: Market) {
-    router.push(tradeHref(market.symbol));
+    router.push(`/trade/${market.symbol}`);
     onClose();
   }
 
@@ -306,7 +305,7 @@ export function MarketPalette({
                   className="palette-row group relative flex items-center rounded-2xl"
                 >
                   <Link
-                    href={tradeHref(m.symbol)}
+                    href={`/trade/${m.symbol}`}
                     onClick={onClose}
                     tabIndex={-1}
                     className={cn("grid min-w-0 flex-1 items-center gap-x-3 px-3 py-2.5", COLS)}
@@ -320,11 +319,8 @@ export function MarketPalette({
                         <span className="block truncate text-[13px] text-fg-3">{m.name}</span>
                       </span>
                     </span>
-                    <span className="num text-right text-[15px] font-medium text-fg">
-                      {m.quote === "USD" ? "$" : ""}
-                      {m.lastPrice}
-                    </span>
-                    <span className={cn("num text-right text-[14px]", TREND_TEXT[trendOf(m.changePct)])}>
+                    <span className="num text-right text-[15px] font-medium text-fg">{m.lastPrice}</span>
+                    <span className={cn("num text-right text-[14px]", TREND_TEXT[m.trend])}>
                       {m.changePct}
                     </span>
                     <span className="num text-right text-[14px] text-fg-2">{m.volume}</span>

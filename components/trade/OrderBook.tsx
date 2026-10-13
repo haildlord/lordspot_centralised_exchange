@@ -4,19 +4,22 @@ import { useState } from "react";
 import { ArrowDown, ArrowUp, Lock, LockOpen, Minus, Plus } from "lucide-react";
 import type { BookLevel, OrderBookData } from "@/lib/types";
 import { cn } from "@/lib/cn";
-import { TREND_TEXT } from "@/lib/format";
+import { TREND_TEXT } from "@/components/ui/trend";
 
 type BookView = "both" | "bids" | "asks";
 
 interface OrderBookProps {
-  book: OrderBookData;
-  base: string;
-  quote: string;
-  /** Shown between the − / + buttons, e.g. "0.0001". */
-  tickSize: string;
+  /** Without it the ladder is empty and the mid row shows a dash. */
+  book?: OrderBookData;
+  base?: string;
+  quote?: string;
+  /** Shown between the − / + buttons. */
+  tickSize?: string;
   /** TODO(api): change the aggregation step and re-request the book. */
   onTickChange?: (direction: "up" | "down") => void;
 }
+
+const label = (name: string, unit?: string) => (unit ? `${name} (${unit})` : name);
 
 /**
  * Bids / asks ladder with depth bars, mid-price row and a buy/sell pressure bar.
@@ -27,6 +30,7 @@ export function OrderBook({ book, base, quote, tickSize, onTickChange }: OrderBo
   const [locked, setLocked] = useState(false);
   const showAsks = view !== "bids";
   const showBids = view !== "asks";
+  const trend = book?.trend ?? "flat";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -60,7 +64,7 @@ export function OrderBook({ book, base, quote, tickSize, onTickChange }: OrderBo
           <button type="button" aria-label="Decrease tick size" onClick={() => onTickChange?.("down")} className="icon-btn size-6">
             <Minus size={13} />
           </button>
-          <span className="min-w-[48px] text-center">{tickSize}</span>
+          <span className="min-w-[48px] text-center">{tickSize ?? "—"}</span>
           <button type="button" aria-label="Increase tick size" onClick={() => onTickChange?.("up")} className="icon-btn size-6">
             <Plus size={13} />
           </button>
@@ -69,15 +73,15 @@ export function OrderBook({ book, base, quote, tickSize, onTickChange }: OrderBo
 
       {/* column heads */}
       <div className="grid shrink-0 grid-cols-3 px-3 pb-1.5 text-[11px] font-medium text-fg-3">
-        <span>Price ({quote})</span>
-        <span className="text-right">Size ({base})</span>
-        <span className="text-right">Total ({base})</span>
+        <span>{label("Price", quote)}</span>
+        <span className="text-right">{label("Size", base)}</span>
+        <span className="text-right">{label("Total", base)}</span>
       </div>
 
       {/* asks — lowest ask sits at the bottom, next to the mid row */}
       {showAsks && (
         <div className="flex min-h-0 flex-1 flex-col justify-end overflow-hidden">
-          {book.asks.map((level) => (
+          {book?.asks.map((level) => (
             <Row key={level.price} level={level} side="ask" />
           ))}
         </div>
@@ -85,30 +89,34 @@ export function OrderBook({ book, base, quote, tickSize, onTickChange }: OrderBo
 
       {/* mid price */}
       <div className="flex shrink-0 items-center gap-2 border-y border-line/70 bg-panel-2/70 px-3 py-2">
-        <span className={cn("num text-[19px] font-semibold leading-none", TREND_TEXT[book.trend])}>{book.lastPrice}</span>
-        {book.trend === "up" && <ArrowUp size={15} className="text-up" />}
-        {book.trend === "down" && <ArrowDown size={15} className="text-down" />}
+        <span className={cn("num text-[19px] font-semibold leading-none", TREND_TEXT[trend])}>
+          {book?.lastPrice ?? "—"}
+        </span>
+        {trend === "up" && <ArrowUp size={15} className="text-up" />}
+        {trend === "down" && <ArrowDown size={15} className="text-down" />}
       </div>
 
       {/* bids */}
       {showBids && (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          {book.bids.map((level) => (
+          {book?.bids.map((level) => (
             <Row key={level.price} level={level} side="bid" />
           ))}
         </div>
       )}
 
       {/* buy / sell pressure */}
-      <div className="flex h-7 shrink-0 overflow-hidden border-t border-line text-[11px] font-semibold">
-        <div
-          className="num flex items-center bg-up/20 px-3 text-up transition-[width] duration-700 ease-smooth"
-          style={{ width: `${book.buyPct}%` }}
-        >
-          {book.buyPct}%
+      {book && (
+        <div className="flex h-7 shrink-0 overflow-hidden border-t border-line text-[11px] font-semibold">
+          <div
+            className="num flex items-center bg-up/20 px-3 text-up transition-[width] duration-700 ease-smooth"
+            style={{ width: `${book.buyPct}%` }}
+          >
+            {book.buyPct}%
+          </div>
+          <div className="num flex flex-1 items-center justify-end bg-down/20 px-3 text-down">{100 - book.buyPct}%</div>
         </div>
-        <div className="num flex flex-1 items-center justify-end bg-down/20 px-3 text-down">{100 - book.buyPct}%</div>
-      </div>
+      )}
     </div>
   );
 }

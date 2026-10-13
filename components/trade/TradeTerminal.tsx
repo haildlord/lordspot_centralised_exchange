@@ -1,8 +1,19 @@
-import type { TerminalData } from "@/lib/types";
+import type { Market, OrderBookData, RecentTrade, Ticker } from "@/lib/types";
 import { BookPanel } from "./BookPanel";
 import { ChartPanel } from "./ChartPanel";
 import { OrderForm } from "./OrderForm";
 import { TickerBar } from "./TickerBar";
+
+interface TradeTerminalProps {
+  /** The `[market]` url param. Always known, even before any data has arrived. */
+  symbol: string;
+  market?: Market;
+  ticker?: Ticker;
+  book?: OrderBookData;
+  trades?: RecentTrade[];
+  /** Tick size shown in the book's stepper. */
+  tickSize?: string;
+}
 
 /**
  * The whole /trade/[market] screen. Placement (see `.terminal` in globals.css):
@@ -11,31 +22,37 @@ import { TickerBar } from "./TickerBar";
  *   chart  │ book       │  form
  *   ───────┴────────────┘
  *
- * `key={symbol}` on the stateful panels resets their local state (tabs, form
- * inputs, hover) when the user switches market without a full page load.
+ * Every data prop is optional: with none passed, each panel renders its empty state.
+ * `key={symbol}` on the stateful panels resets their local state (tabs, form inputs)
+ * when the user switches market without a full page load.
  */
-export function TradeTerminal({ data }: { data: TerminalData }) {
-  const key = data.market.symbol;
-
+export function TradeTerminal({ symbol, market, ticker, book, trades, tickSize }: TradeTerminalProps) {
   return (
     <div className="terminal">
       <div className="t-ticker min-w-0">
-        <TickerBar key={key} market={data.market} ticker={data.ticker} />
+        <TickerBar key={symbol} symbol={symbol} market={market} ticker={ticker} />
       </div>
       <div className="t-chart grid min-h-0 min-w-0">
-        <ChartPanel key={key} data={data} />
+        <ChartPanel />
       </div>
       <div className="t-book grid min-h-0 min-w-0">
-        <BookPanel key={key} data={data} />
+        <BookPanel
+          key={symbol}
+          book={book}
+          trades={trades}
+          base={market?.base}
+          quote={market?.quote}
+          tickSize={tickSize}
+        />
       </div>
       <div className="t-form min-w-0">
-        <OrderForm key={key} market={data.market} />
+        <OrderForm key={symbol} base={market?.base} quote={market?.quote} />
       </div>
     </div>
   );
 }
 
-/** Same grid, empty panels. Shown while a market's data is resolving. */
+/** Same grid, empty panels. Use as the Suspense fallback while a market's data is loading. */
 export function TerminalSkeleton() {
   const block = "panel skeleton";
   return (

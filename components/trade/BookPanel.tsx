@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { TerminalData } from "@/lib/types";
+import type { OrderBookData, RecentTrade } from "@/lib/types";
 import { Tabs } from "@/components/ui/Tabs";
 import { OrderBook } from "./OrderBook";
 import { RecentTrades } from "./RecentTrades";
@@ -12,10 +12,21 @@ const TABS = [
 ] as const;
 type BookTab = (typeof TABS)[number]["id"];
 
-/** Middle column: Book | Trades. */
-export function BookPanel({ data }: { data: TerminalData }) {
+/** Middle column: Book | Trades. Both tabs render their empty state until data is passed. */
+export function BookPanel({
+  book,
+  trades,
+  base,
+  quote,
+  tickSize,
+}: {
+  book?: OrderBookData;
+  trades?: RecentTrade[];
+  base?: string;
+  quote?: string;
+  tickSize?: string;
+}) {
   const [tab, setTab] = useState<BookTab>("book");
-  const { market } = data;
 
   return (
     <section aria-label="Order book" className="panel flex h-full min-h-0 flex-col overflow-hidden">
@@ -23,9 +34,9 @@ export function BookPanel({ data }: { data: TerminalData }) {
       {/* keyed so the content cross-fades whenever the tab changes */}
       <div key={tab} className="min-h-0 flex-1 animate-fade-in">
         {tab === "book" ? (
-          <OrderBook book={data.book} base={market.base} quote={market.quote} tickSize={data.tickSize} />
+          <OrderBook book={book} base={base} quote={quote} tickSize={tickSize} />
         ) : (
-          <RecentTrades trades={data.trades} base={market.base} quote={market.quote} />
+          <RecentTrades trades={trades} base={base} quote={quote} />
         )}
       </div>
     </section>

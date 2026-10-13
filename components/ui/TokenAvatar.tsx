@@ -7,10 +7,10 @@ function hueOf(symbol: string): number {
 }
 
 /**
- * Round token badge. Colour is derived from the symbol so every asset gets a
+ * Round token badge. Colour is derived from the symbol, so every asset gets a
  * stable look without shipping logos. `USD` renders as a green "$".
  *
- * TODO(api): when you have real icons, render <img src={market.iconUrl} /> here instead.
+ * TODO: when you have real icons, render an <img> here instead.
  */
 export function TokenAvatar({
   symbol,
@@ -35,10 +35,12 @@ export function TokenAvatar({
         width: size,
         height: size,
         fontSize: Math.round(size * 0.44),
-        background: `linear-gradient(135deg, hsl(${hue} 72% 56%), hsl(${(hue + 36) % 360} 70% 34%))`,
+        background: s
+          ? `linear-gradient(135deg, hsl(${hue} 72% 56%), hsl(${(hue + 36) % 360} 70% 34%))`
+          : "linear-gradient(135deg, var(--color-line-2), var(--color-raise))",
       }}
     >
-      {isDollar ? "$" : s.slice(0, 1)}
+      {isDollar ? "$" : s.slice(0, 1) || "·"}
     </span>
   );
 }

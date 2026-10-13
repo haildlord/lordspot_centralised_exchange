@@ -1,18 +1,17 @@
 import Link from "next/link";
 import { ArrowUpRight, Search } from "lucide-react";
 import type { Market } from "@/lib/types";
-import { tradeHref } from "@/lib/config";
 import { cn } from "@/lib/cn";
-import { TREND_TEXT, trendOf } from "@/lib/format";
 import { OpenPaletteButton } from "@/components/search/OpenPaletteButton";
 import { PairLabel } from "@/components/ui/PairLabel";
 import { Sparkline } from "@/components/ui/Sparkline";
 import { TokenAvatar } from "@/components/ui/TokenAvatar";
+import { TREND_TEXT } from "@/components/ui/trend";
 
 const COLS = "grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_100px_minmax(0,1fr)_110px_28px]";
 
-/** "Popular markets" table. Every row is a link straight to that market's terminal. */
-export function MarketsTable({ markets }: { markets: Market[] }) {
+/** "Popular markets" table. Every row links straight to that market's terminal. */
+export function MarketsTable({ markets = [] }: { markets?: Market[] }) {
   return (
     <section id="markets" className="reveal mx-auto max-w-6xl scroll-mt-24 px-5 py-24">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
@@ -37,43 +36,39 @@ export function MarketsTable({ markets }: { markets: Market[] }) {
           <span />
         </div>
 
-        {markets.map((m) => {
-          const trend = trendOf(m.changePct);
-          return (
-            <Link
-              key={m.symbol}
-              href={tradeHref(m.symbol)}
-              className={cn(
-                "group relative grid items-center gap-x-4 border-t border-line/70 px-5 py-3.5 transition-colors duration-300 hover:bg-white/[0.035]",
-                "before:absolute before:inset-y-3 before:left-0 before:w-0.5 before:origin-center before:scale-y-0 before:rounded-full before:bg-gold-400 before:transition-transform before:duration-300 hover:before:scale-y-100",
-                COLS,
-              )}
-            >
-              <span className="flex min-w-0 items-center gap-3">
-                <TokenAvatar symbol={m.base} size={36} />
-                <span className="min-w-0">
-                  <span className="block text-[15px] leading-tight">
-                    <PairLabel market={m} />
-                  </span>
-                  <span className="block truncate text-[12px] text-fg-3">{m.name}</span>
+        {markets.length === 0 && (
+          <p className="border-t border-line/70 px-5 py-14 text-center text-[14px] text-fg-3">No markets to show</p>
+        )}
+
+        {markets.map((m) => (
+          <Link
+            key={m.symbol}
+            href={`/trade/${m.symbol}`}
+            className={cn(
+              "group relative grid items-center gap-x-4 border-t border-line/70 px-5 py-3.5 transition-colors duration-300 hover:bg-white/[0.035]",
+              "before:absolute before:inset-y-3 before:left-0 before:w-0.5 before:origin-center before:scale-y-0 before:rounded-full before:bg-gold-400 before:transition-transform before:duration-300 hover:before:scale-y-100",
+              COLS,
+            )}
+          >
+            <span className="flex min-w-0 items-center gap-3">
+              <TokenAvatar symbol={m.base} size={36} />
+              <span className="min-w-0">
+                <span className="block text-[15px] leading-tight">
+                  <PairLabel market={m} />
                 </span>
+                <span className="block truncate text-[12px] text-fg-3">{m.name}</span>
               </span>
-              <span className="num text-right text-[15px] font-medium text-fg">
-                {m.quote === "USD" ? "$" : ""}
-                {m.lastPrice}
-              </span>
-              <span className={cn("num text-right text-[14px]", TREND_TEXT[trend])}>{m.changePct}</span>
-              <span className="num text-right text-[14px] text-fg-2">{m.volume}</span>
-              <span className="flex justify-end">
-                <Sparkline points={m.spark} trend={trend} />
-              </span>
-              <ArrowUpRight
-                size={18}
-                className="text-fg-3 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-gold-400"
-              />
-            </Link>
-          );
-        })}
+            </span>
+            <span className="num text-right text-[15px] font-medium text-fg">{m.lastPrice}</span>
+            <span className={cn("num text-right text-[14px]", TREND_TEXT[m.trend])}>{m.changePct}</span>
+            <span className="num text-right text-[14px] text-fg-2">{m.volume}</span>
+            <span className="flex justify-end">{m.spark && <Sparkline points={m.spark} trend={m.trend} />}</span>
+            <ArrowUpRight
+              size={18}
+              className="text-fg-3 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-gold-400"
+            />
+          </Link>
+        ))}
       </div>
     </section>
   );

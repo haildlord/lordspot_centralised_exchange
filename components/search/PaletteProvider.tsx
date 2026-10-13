@@ -20,6 +20,8 @@ export function usePalette(): PaletteContextValue {
 
 type PaletteState = "closed" | "open" | "closing";
 
+const NO_MARKETS: Market[] = [];
+
 /** Keep in step with the exit animations in globals.css (.palette-overlay[data-state="closed"]). */
 const EXIT_MS = 180;
 
@@ -30,10 +32,10 @@ const EXIT_MS = 180;
  * Closing is two-step (open -> closing -> closed) so the exit animation can play
  * before the palette unmounts.
  *
- * `markets` is the list the palette searches — pass it from a server component
- * (see app/layout.tsx) or fetch it however you like.
+ * `markets` is the list the palette searches. Empty until you pass one (from a server
+ * component in app/layout.tsx, or fetch it however you like).
  */
-export function PaletteProvider({ markets, children }: { markets: Market[]; children: ReactNode }) {
+export function PaletteProvider({ markets = NO_MARKETS, children }: { markets?: Market[]; children: ReactNode }) {
   const [state, setState] = useState<PaletteState>("closed");
 
   const open = useCallback(() => setState("open"), []);
