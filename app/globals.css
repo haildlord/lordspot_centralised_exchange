@@ -48,8 +48,6 @@
   --animate-fade-up: fade-up 0.8s var(--ease-smooth) both;
   --animate-fade-in: fade-in 0.3s var(--ease-smooth) both;
   --animate-swap: swap 0.34s var(--ease-smooth) both;
-  --animate-pop-in: pop-in 0.24s var(--ease-smooth) both;
-  --animate-marquee: marquee 70s linear infinite;
   --animate-drift: drift 16s var(--ease-soft) infinite alternate;
 }
 
@@ -74,16 +72,9 @@
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
-@keyframes pop-in {
-  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
-  to { opacity: 1; transform: none; }
-}
 @keyframes rise {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: none; }
-}
-@keyframes marquee {
-  to { transform: translateX(-50%); }
 }
 @keyframes drift {
   from { transform: translate3d(-3%, 0, 0) scale(1); }
@@ -461,29 +452,6 @@
     font-size: 15px;
   }
   .field input:focus-visible { outline: none; }
-
-  /* Keyboard key chip. */
-  .kbd {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
-    border-radius: 6px;
-    background: var(--color-raise);
-    border: 1px solid var(--color-line-2);
-    border-bottom-width: 2px;
-    color: var(--color-fg-2);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    line-height: 1;
-  }
-
-  .hint {
-    border-bottom: 1px dashed var(--color-fg-3);
-    cursor: help;
-  }
 
   /* ── Range slider (order form) ─────────────────────────────────────────── */
   .range {

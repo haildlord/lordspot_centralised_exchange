@@ -13,15 +13,15 @@ function hueOf(symbol: string): number {
  * TODO: when you have real icons, render an <img> here instead.
  */
 export function TokenAvatar({
-  symbol,
+  baseSymbol,
   size = 28,
   className,
 }: {
-  symbol: string;
+  baseSymbol: string;
   size?: number;
   className?: string;
 }) {
-  const s = symbol.toUpperCase();
+  const s = baseSymbol.toUpperCase();
   const isDollar = s === "USD";
   const hue = isDollar ? 156 : hueOf(s);
   return (

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { Market } from "@/lib/types";
+import type { Market, Ticker } from "@/lib/types";
 import { MarketPalette } from "./MarketPalette";
 
 interface PaletteContextValue {
@@ -26,16 +26,24 @@ const NO_MARKETS: Market[] = [];
 const EXIT_MS = 180;
 
 /**
- * Mounts the market search palette once for the whole app and wires the global
- * shortcuts: "/" and ⌘K / Ctrl+K open it, Esc closes it.
+ * Mounts the market search once for the whole app. Anything can open it with `usePalette().open()`.
  *
  * Closing is two-step (open -> closing -> closed) so the exit animation can play
  * before the palette unmounts.
  *
  * `markets` is the list the palette searches. Empty until you pass one (from a server
- * component in app/layout.tsx, or fetch it however you like).
+ * component in app/layout.tsx, or fetch it however you like). `tickers` (keyed by market
+ * symbol) fills the price / change / volume columns.
  */
-export function PaletteProvider({ markets = NO_MARKETS, children }: { markets?: Market[]; children: ReactNode }) {
+export function PaletteProvider({
+  markets = NO_MARKETS,
+  tickers,
+  children,
+}: {
+  markets?: Market[];
+  tickers?: Record<string, Ticker>;
+  children: ReactNode;
+}) {
   const [state, setState] = useState<PaletteState>("closed");
 
   const open = useCallback(() => setState("open"), []);
@@ -47,29 +55,12 @@ export function PaletteProvider({ markets = NO_MARKETS, children }: { markets?: 
     return () => clearTimeout(timer);
   }, [state]);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const el = e.target as HTMLElement | null;
-      const typing = !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
-
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setState((s) => (s === "open" ? "closing" : "open"));
-      } else if (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        e.preventDefault();
-        setState("open");
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
   const value = useMemo(() => ({ open, close, isOpen: state === "open" }), [open, close, state]);
 
   return (
     <PaletteContext value={value}>
       {children}
-      {state !== "closed" && <MarketPalette markets={markets} closing={state === "closing"} onClose={close} />}
+      {state !== "closed" && <MarketPalette markets={markets} tickers={tickers} closing={state === "closing"} onClose={close} />}
     </PaletteContext>
   );
 }

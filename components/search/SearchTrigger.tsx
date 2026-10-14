@@ -24,7 +24,6 @@ export function SearchTrigger({
         type="button"
         onClick={open}
         aria-haspopup="dialog"
-        aria-keyshortcuts="/"
         className={cn(
           "group flex h-16 w-full items-center gap-4 rounded-2xl border border-line-2 bg-panel/80 px-5 text-left backdrop-blur transition duration-300",
           "hover:-translate-y-0.5 hover:border-gold-500/50 hover:shadow-[0_0_0_4px_rgb(243_177_58/0.07),0_24px_70px_-24px_rgb(243_177_58/0.4)]",
@@ -36,7 +35,6 @@ export function SearchTrigger({
         <span className="flex-1 truncate text-[17px] text-fg-3 transition-colors group-hover:text-fg-2">
           Search a ticker or name…
         </span>
-        <span className="kbd">/</span>
         <span className="btn btn-primary btn-sm pointer-events-none">Search</span>
       </button>
     );
@@ -47,7 +45,6 @@ export function SearchTrigger({
       type="button"
       onClick={open}
       aria-haspopup="dialog"
-      aria-keyshortcuts="/"
       className={cn(
         "group flex h-10 w-full max-w-[520px] items-center gap-2.5 rounded-xl border border-line bg-panel px-3.5 text-[14px] text-fg-3 transition duration-300",
         "hover:border-line-2 hover:bg-panel-2 hover:text-fg-2 hover:shadow-[0_8px_24px_-14px_rgb(0_0_0/0.9)]",
@@ -56,7 +53,6 @@ export function SearchTrigger({
     >
       <Search size={16} className="shrink-0 transition-colors group-hover:text-gold-400" />
       <span className="flex-1 truncate text-left">Search markets, stocks, and more</span>
-      <span className="kbd">/</span>
     </button>
   );
 }

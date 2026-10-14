@@ -20,13 +20,10 @@ export function TickerBar({
   symbol,
   market,
   ticker,
-  feeLabel,
 }: {
   symbol: string;
   market?: Market;
   ticker?: Ticker;
-  /** Optional badge on the far right. Hidden when omitted. */
-  feeLabel?: string;
 }) {
   const { open, isOpen } = usePalette();
   const tone = TREND_TEXT[ticker?.trend ?? "flat"];
@@ -40,14 +37,9 @@ export function TickerBar({
         aria-label={`Change market (current: ${symbol})`}
         className="group -ml-1 flex shrink-0 items-center gap-3 rounded-xl py-1 pl-1 pr-2 transition hover:bg-white/[0.04]"
       >
-        <TokenAvatar symbol={market?.base ?? symbol} size={34} />
+        <TokenAvatar baseSymbol={market?.baseSymbol ?? symbol} size={34} />
         <span className="flex items-center gap-2 text-[19px]">
           {market ? <PairLabel market={market} /> : <span className="font-semibold text-fg">{symbol}</span>}
-          {market?.leverage && (
-            <span className="rounded-md bg-iris/15 px-1.5 py-1 text-[11px] font-semibold leading-none text-iris">
-              {market.leverage}
-            </span>
-          )}
         </span>
         <ChevronDown
           size={18}
@@ -65,12 +57,6 @@ export function TickerBar({
       <Stat label="24H High" className="@max-[620px]:hidden">{ticker?.high ?? EMPTY}</Stat>
       <Stat label="24H Low" className="@max-[720px]:hidden">{ticker?.low ?? EMPTY}</Stat>
       <Stat label="24H Volume" className="@max-[860px]:hidden">{ticker?.volume ?? EMPTY}</Stat>
-
-      {feeLabel && (
-        <span className="ml-auto shrink-0 rounded-lg border border-gold-500/30 bg-gold-500/10 px-2.5 py-1.5 text-[12px] font-semibold text-gold-400 @max-[960px]:hidden">
-          {feeLabel}
-        </span>
-      )}
     </section>
   );
 }

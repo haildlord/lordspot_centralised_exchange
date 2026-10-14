@@ -1,10 +1,14 @@
 import Link from "next/link";
-import type { Market } from "@/lib/types";
+import type { Market, Ticker } from "@/lib/types";
 import { SearchTrigger } from "@/components/search/SearchTrigger";
+import { PairLabel } from "@/components/ui/PairLabel";
 import { TREND_TEXT } from "@/components/ui/trend";
 
-/** Headline + the big market search. `trending` is a short list of quick-jump chips (hidden when empty). */
-export function Hero({ trending = [] }: { trending?: Market[] }) {
+/**
+ * Headline + the big market search. `trending` is a short list of quick-jump chips (hidden when empty);
+ * pass `tickers` (keyed by market symbol) to show each chip's 24h change.
+ */
+export function Hero({ trending = [], tickers }: { trending?: Market[]; tickers?: Record<string, Ticker> }) {
   return (
     <section className="relative isolate overflow-hidden">
       {/* backdrop */}
@@ -51,18 +55,19 @@ export function Hero({ trending = [] }: { trending?: Market[] }) {
             style={{ animationDelay: "320ms" }}
           >
             <span className="mr-1 text-fg-3">Trending</span>
-            {trending.map((m) => (
-              <Link
-                key={m.symbol}
-                href={`/trade/${m.symbol}`}
-                className="inline-flex items-center gap-2 rounded-full border border-line bg-panel/60 px-3.5 py-1.5 transition duration-300 hover:-translate-y-0.5 hover:border-gold-500/40 hover:bg-raise"
-              >
-                <span className="font-medium text-fg">
-                  {m.base}/{m.quote}
-                </span>
-                <span className={`num ${TREND_TEXT[m.trend]}`}>{m.changePct}</span>
-              </Link>
-            ))}
+            {trending.map((m) => {
+              const t = tickers?.[m.symbol];
+              return (
+                <Link
+                  key={m.symbol}
+                  href={`/trade/${m.symbol}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-line bg-panel/60 px-3.5 py-1.5 transition duration-300 hover:-translate-y-0.5 hover:border-gold-500/40 hover:bg-raise"
+                >
+                  <PairLabel market={m} />
+                  {t && <span className={`num ${TREND_TEXT[t.trend]}`}>{t.changePct}</span>}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

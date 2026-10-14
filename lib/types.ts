@@ -1,62 +1,19 @@
-/**
- * Shapes the UI components render — types only, there is no data in this project.
- *
- * Swap these for your own axios response types, or map your responses into
- * these before passing them down. Every displayed value is a plain string:
- * format prices, percentages and volumes before they reach a component.
- * Colours are driven by the explicit `trend` / `side` fields, never inferred.
- */
-
-export type Trend = "up" | "down" | "flat";
 export type Side = "buy" | "sell";
 
-/** One row in the market search, the landing table, the hero chips and the ticker tape. */
-export interface Market {
-  /** URL param, e.g. /trade/<symbol>. */
-  symbol: string;
-  base: string;
-  quote: string;
-  kind: "spot" | "perp";
-  /** Asset name shown under the pair in the search palette. */
-  name: string;
-  /** Which palette category the market belongs to. */
-  category: "crypto" | "stocks" | "perps";
-  leverage?: string;
-  lastPrice: string;
-  changePct: string;
-  trend: Trend;
-  volume: string;
-  /** Optional series for the landing-page sparkline (left = oldest). */
-  spark?: number[];
-}
-
-/** The strip above the chart. */
-export interface Ticker {
-  lastPrice: string;
-  change: string;
-  changePct: string;
-  trend: Trend;
-  high: string;
-  low: string;
-  volume: string;
-}
+export type Trend = "up" | "down" | "flat";
 
 export interface BookLevel {
   price: string;
   size: string;
   total: string;
-  /** 0–1: width of the background depth bar. */
   depth: number;
 }
 
 export interface OrderBookData {
-  /** Top-to-bottom as drawn: highest price first, best (lowest) ask last. */
   asks: BookLevel[];
-  /** Top-to-bottom as drawn: best (highest) bid first. */
   bids: BookLevel[];
   lastPrice: string;
   trend: Trend;
-  /** 0–100: share of buy-side volume for the pressure bar. */
   buyPct: number;
 }
 
@@ -65,6 +22,79 @@ export interface RecentTrade {
   price: string;
   qty: string;
   time: string;
-  /** Taker side; decides the price colour. */
   side: Side;
+}
+
+// * Backpack Types :
+
+export interface fFunction {
+  base    : string,    // "0.1",
+  factor  : string,    // "0.0006",
+  type    : "sqrt"
+}
+
+export interface Band {
+  maxMultiplier     : string,   // "1.15"
+  minMultiplier     : string    // "0.85"
+}
+
+export interface Price {
+  borrowEntryFeeMaxMultiplier       : string    | null,  // "1.01"
+  borrowEntryFeeMinMultiplier       : string    | null,  // "0.99"
+  discoveryBoundBand                : Band | null,
+  maxImpactMultiplier               : string,            // "1.05"
+  maxMultiplier                     : string,            // "2"
+  maxPrice                          : string    | null,  // "1000000" 
+  maxPriceUpdateMultiplier          : string    | null,  // "1.005"
+  meanMarkPriceBand                 : Band      | null,  // "1.1"
+  meanPremiumBand                   : { tolerancePct : string } | null,
+  minImpactMultiplier               : string,
+  minMultiplier                     : string,
+  minPrice                          : string,
+  minPriceUpdateMultiplier          : string    | null,
+  tickSize                          : string,
+}
+
+export interface Quantity {
+  maxQuantity : null,
+  minQuantity : string,
+  stepSize    : string
+}
+
+export interface Filter {
+  price         : Price,
+  quantity      : Quantity
+}
+
+export interface Market {
+  baseSymbol                  : string,
+  createdAt                   : string,
+  filters                     : Filter,
+  fundingInterval             : number  | null,
+  fundingRateLowerBound       : string  | null,       // "-100"
+  fundingRateUpperBound       : string  | null,
+  imfFunction                 : fFunction | null,
+  marketType                  : "SPOT"  | "PERP",
+  mmfFunction                 : fFunction | null,  
+  openInterestLimit           : string  | null,        // "20000000"
+  orderBookState              : "Open"  | "Closed",
+  positionLimitWeight         :  string | null,        // "4" 
+  quoteSymbol                 : "USDC",
+  rwaMarketType               : "STOCK" | "INDEX" | null,
+  symbol                      : string,                 // LTC_USDC_PERP or "DEEP_USDC"
+  visible                     : boolean
+}
+
+
+export interface Ticker {
+  firstPrice          : string;
+  high                : string;
+  lastPrice           : string;
+  low                 : string;
+  priceChange         : string;
+  priceChangePercent  : string; // e.g. "-0.076591"
+  quoteVolume         : string;
+  symbol              : string; // e.g. "NEAR_USDC"
+  trades              : string;
+  volume              : string;
 }

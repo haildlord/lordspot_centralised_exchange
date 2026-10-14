@@ -11,7 +11,7 @@ interface TradeTerminalProps {
   ticker?: Ticker;
   book?: OrderBookData;
   trades?: RecentTrade[];
-  /** Tick size shown in the book's stepper. */
+  /** Tick size shown in the book's stepper. Defaults to the market's own tick size. */
   tickSize?: string;
 }
 
@@ -40,13 +40,13 @@ export function TradeTerminal({ symbol, market, ticker, book, trades, tickSize }
           key={symbol}
           book={book}
           trades={trades}
-          base={market?.base}
-          quote={market?.quote}
-          tickSize={tickSize}
+          base={market?.baseSymbol}
+          quote={market?.quoteSymbol}
+          tickSize={tickSize ?? market?.filters.price.tickSize}
         />
       </div>
       <div className="t-form min-w-0">
-        <OrderForm key={symbol} base={market?.base} quote={market?.quote} />
+        <OrderForm key={symbol} base={market?.baseSymbol} quote={market?.quoteSymbol} />
       </div>
     </div>
   );

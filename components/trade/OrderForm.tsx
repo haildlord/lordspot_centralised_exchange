@@ -1,17 +1,13 @@
 "use client";
 
 import { useId, useState, type ReactNode } from "react";
-import { ArrowLeftRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { Checkbox } from "@/components/ui/Checkbox";
-import { Menu } from "@/components/ui/Menu";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { Tabs } from "@/components/ui/Tabs";
 import { TokenAvatar } from "@/components/ui/TokenAvatar";
 
 export type OrderSide = "buy" | "sell";
-export type OrderType = "limit" | "market" | "conditional";
-export type TriggerType = "mark" | "last" | "index";
+export type OrderType = "limit" | "market";
 
 /** Everything the ticket knows when the user presses the button. Validate and send it however you like. */
 export interface OrderDraft {
@@ -22,12 +18,6 @@ export interface OrderDraft {
   orderValue: string;
   /** 0–100 from the slider. */
   percent: number;
-  triggerType: TriggerType;
-  triggerPrice: string;
-  /** Conditional orders: also set a limit price once triggered. */
-  useLimitPrice: boolean;
-  /** Market orders: is `orderValue` in the quote asset (true) or the base asset (false)? */
-  valueInQuote: boolean;
 }
 
 interface OrderFormProps {
@@ -37,31 +27,14 @@ interface OrderFormProps {
   isAuthenticated?: boolean;
   /** Free balance shown under the tabs. "-" while logged out. */
   balance?: string;
-  /** Value shown on the Max Slippage row of market orders. */
-  maxSlippage?: string;
   onSubmit?: (order: OrderDraft) => void;
   onSignUp?: () => void;
   onLogIn?: () => void;
-  onPricePreset?: (preset: "mid" | "bbo") => void;
 }
 
 const TYPE_TABS = [
   { id: "limit", label: "Limit" },
   { id: "market", label: "Market" },
-  {
-    id: "conditional",
-    label: (
-      <>
-        Conditional <ChevronDown size={14} />
-      </>
-    ),
-  },
-] as const;
-
-const TRIGGERS = [
-  { id: "mark", label: "Mark" },
-  { id: "last", label: "Last" },
-  { id: "index", label: "Index" },
 ] as const;
 
 /** Digits and a single dot only. */
@@ -72,18 +45,16 @@ const cleanNumber = (v: string) => v.replace(/[^0-9.]/g, "").replace(/(\..*)\./g
  * Quantity ↔ order value ↔ slider are deliberately NOT linked — wire your maths in `onSubmit`
  * or by lifting the state up.
  *
- * TODO(api): balance, slippage, price presets (Mid / BBO), submit, and the auth buttons.
+ * TODO(api): balance, submit, and the auth buttons.
  */
 export function OrderForm({
   base,
   quote,
   isAuthenticated = false,
   balance = "-",
-  maxSlippage = "—",
   onSubmit,
   onSignUp,
   onLogIn,
-  onPricePreset,
 }: OrderFormProps) {
   const uid = useId();
   const [side, setSide] = useState<OrderSide>("buy");
@@ -92,36 +63,10 @@ export function OrderForm({
   const [quantity, setQuantity] = useState("");
   const [orderValue, setOrderValue] = useState("");
   const [percent, setPercent] = useState(0);
-  const [triggerType, setTriggerType] = useState<TriggerType>("mark");
-  const [triggerPrice, setTriggerPrice] = useState("");
-  const [useLimitPrice, setUseLimitPrice] = useState(false);
-  const [valueInQuote, setValueInQuote] = useState(true);
 
   const accent = side === "buy" ? "up" : "down";
-  const quoteIcon = <TokenAvatar symbol={quote ?? ""} size={24} />;
-  const baseIcon = <TokenAvatar symbol={base ?? ""} size={24} />;
-
-  const priceField = (
-    <Field
-      id={`${uid}-price`}
-      label={type === "conditional" ? "Limit Price" : "Price"}
-      value={price}
-      onChange={setPrice}
-      addon={quoteIcon}
-      right={
-        type === "limit" ? (
-          <span className="flex items-center gap-2.5 text-[12px] font-medium">
-            <button type="button" onClick={() => onPricePreset?.("mid")} className="text-iris hover:underline">
-              Mid
-            </button>
-            <button type="button" onClick={() => onPricePreset?.("bbo")} className="text-iris hover:underline">
-              BBO
-            </button>
-          </span>
-        ) : undefined
-      }
-    />
-  );
+  const quoteIcon = <TokenAvatar baseSymbol={quote ?? ""} size={24} />;
+  const baseIcon = <TokenAvatar baseSymbol={base ?? ""} size={24} />;
 
   const slider = (
     <div className="flex flex-col gap-0.5">
@@ -140,18 +85,7 @@ export function OrderForm({
       onSubmit={(e) => {
         e.preventDefault();
         if (!isAuthenticated) return;
-        onSubmit?.({
-          side,
-          type,
-          price,
-          quantity,
-          orderValue,
-          percent,
-          triggerType,
-          triggerPrice,
-          useLimitPrice,
-          valueInQuote,
-        });
+        onSubmit?.({ side, type, price, quantity, orderValue, percent });
       }}
     >
       {/* buy / sell — one thumb slides and re-tints */}
@@ -180,97 +114,17 @@ export function OrderForm({
 
       {/* keyed on the order type so the fields cross-fade when it changes */}
       <div key={type} className="flex animate-swap flex-col gap-4">
-        {/* ── Limit ── */}
-        {type === "limit" && (
+        {type === "limit" ? (
           <>
-            {priceField}
-            <Field
-              id={`${uid}-qty`}
-              label="Quantity"
-              value={quantity}
-              onChange={setQuantity}
-              addon={baseIcon}
-            />
+            <Field id={`${uid}-price`} label="Price" value={price} onChange={setPrice} addon={quoteIcon} />
+            <Field id={`${uid}-qty`} label="Quantity" value={quantity} onChange={setQuantity} addon={baseIcon} />
             {slider}
-            <Field
-              id={`${uid}-value`}
-              label="Order Value"
-              value={orderValue}
-              onChange={setOrderValue}
-              addon={quoteIcon}
-            />
+            <Field id={`${uid}-value`} label="Order Value" value={orderValue} onChange={setOrderValue} addon={quoteIcon} />
           </>
-        )}
-
-        {/* ── Market ── */}
-        {type === "market" && (
+        ) : (
           <>
-            <Field
-              id={`${uid}-value`}
-              label={
-                <span className="flex items-center gap-1.5">
-                  Order Value
-                  <button
-                    type="button"
-                    aria-label="Switch order value unit"
-                    onClick={() => setValueInQuote((q) => !q)}
-                    className="text-fg-3 hover:text-fg"
-                  >
-                    <ArrowLeftRight size={13} />
-                  </button>
-                </span>
-              }
-              right={<span className="num text-fg-3">≈ —</span>}
-              value={orderValue}
-              onChange={setOrderValue}
-              addon={valueInQuote ? quoteIcon : baseIcon}
-            />
+            <Field id={`${uid}-value`} label="Order Value" value={orderValue} onChange={setOrderValue} addon={quoteIcon} />
             {slider}
-            <div className="flex items-center justify-between text-[12px]">
-              <span className="text-fg-3">Max Slippage</span>
-              <button type="button" className="num font-medium text-iris hover:underline">
-                {maxSlippage}
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* ── Conditional ── */}
-        {type === "conditional" && (
-          <>
-            <Field
-              id={`${uid}-trigger`}
-              label="Trigger Price"
-              value={triggerPrice}
-              onChange={setTriggerPrice}
-              addon={quoteIcon}
-              right={
-                <Menu
-                  label="Trigger price type"
-                  items={TRIGGERS}
-                  value={triggerType}
-                  onSelect={(id) => setTriggerType(id as TriggerType)}
-                  align="right"
-                  triggerClassName="flex items-center gap-1 text-[12px] font-medium text-fg-2 hover:text-fg"
-                  trigger={(open) => (
-                    <>
-                      {TRIGGERS.find((t) => t.id === triggerType)?.label}
-                      <ChevronDown size={13} className={cn("transition", open && "rotate-180")} />
-                    </>
-                  )}
-                />
-              }
-            />
-            <Field
-              id={`${uid}-qty`}
-              label="Quantity"
-              right={<span className="num text-fg-3">≈ —</span>}
-              value={quantity}
-              onChange={setQuantity}
-              addon={baseIcon}
-            />
-            {slider}
-            {useLimitPrice && priceField}
           </>
         )}
       </div>
@@ -290,9 +144,6 @@ export function OrderForm({
           </button>
         </div>
       )}
-      {type === "conditional" && (
-        <Checkbox label="Limit Price" checked={useLimitPrice} onChange={setUseLimitPrice} />
-      )}
     </form>
   );
 }
@@ -300,26 +151,21 @@ export function OrderForm({
 function Field({
   id,
   label,
-  right,
   value,
   onChange,
   addon,
 }: {
   id: string;
-  label: ReactNode;
-  right?: ReactNode;
+  label: string;
   value: string;
   onChange: (v: string) => void;
   addon: ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex min-h-4 items-center justify-between text-[12px]">
-        <label htmlFor={id} className="text-fg-3">
-          {label}
-        </label>
-        {right}
-      </div>
+      <label htmlFor={id} className="text-[12px] text-fg-3">
+        {label}
+      </label>
       <div className="field">
         <input
           id={id}

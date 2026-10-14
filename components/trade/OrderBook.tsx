@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Lock, LockOpen, Minus, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import type { BookLevel, OrderBookData } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { TREND_TEXT } from "@/components/ui/trend";
@@ -13,10 +13,7 @@ interface OrderBookProps {
   book?: OrderBookData;
   base?: string;
   quote?: string;
-  /** Shown between the − / + buttons. */
   tickSize?: string;
-  /** TODO(api): change the aggregation step and re-request the book. */
-  onTickChange?: (direction: "up" | "down") => void;
 }
 
 const label = (name: string, unit?: string) => (unit ? `${name} (${unit})` : name);
@@ -25,16 +22,15 @@ const label = (name: string, unit?: string) => (unit ? `${name} (${unit})` : nam
  * Bids / asks ladder with depth bars, mid-price row and a buy/sell pressure bar.
  * Rows are clipped to the panel height, so hand it as many levels as you have.
  */
-export function OrderBook({ book, base, quote, tickSize, onTickChange }: OrderBookProps) {
+export function OrderBook({ book, base, quote, tickSize }: OrderBookProps) {
   const [view, setView] = useState<BookView>("both");
-  const [locked, setLocked] = useState(false);
   const showAsks = view !== "bids";
   const showBids = view !== "asks";
   const trend = book?.trend ?? "flat";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      {/* controls */}
+      {/* view toggle + tick size */}
       <div className="flex shrink-0 items-center gap-0.5 px-3 pb-2 pt-3">
         {(["both", "asks", "bids"] as const).map((v) => (
           <button
@@ -49,26 +45,11 @@ export function OrderBook({ book, base, quote, tickSize, onTickChange }: OrderBo
             <ViewGlyph kind={v} />
           </button>
         ))}
-        <button
-          type="button"
-          aria-pressed={locked}
-          aria-label={locked ? "Unlock order book" : "Lock order book"}
-          onClick={() => setLocked((l) => !l)}
-          className="icon-btn ml-0.5 size-7"
-          data-active={locked}
-        >
-          {locked ? <Lock size={14} /> : <LockOpen size={14} />}
-        </button>
 
-        <div className="num ml-auto flex items-center gap-1 text-[12px] text-fg-2">
-          <button type="button" aria-label="Decrease tick size" onClick={() => onTickChange?.("down")} className="icon-btn size-6">
-            <Minus size={13} />
-          </button>
-          <span className="min-w-[48px] text-center">{tickSize ?? "—"}</span>
-          <button type="button" aria-label="Increase tick size" onClick={() => onTickChange?.("up")} className="icon-btn size-6">
-            <Plus size={13} />
-          </button>
-        </div>
+        <span className="num ml-auto text-[12px] text-fg-2">
+          <span className="text-fg-3">Tick </span>
+          {tickSize ?? "—"}
+        </span>
       </div>
 
       {/* column heads */}

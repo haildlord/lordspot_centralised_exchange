@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { PaletteProvider } from "@/components/search/PaletteProvider";
 import "./globals.css";
+import { getMarkets } from "@/lib/api";
+import { Market } from "@/lib/types";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,15 +37,17 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+
+  const markets : Market[] = await getMarkets();
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${instrument.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-bg text-fg">
-        {/* TODO(api): pass `markets` to PaletteProvider once you have the list. */}
-        <PaletteProvider>{children}</PaletteProvider>
+        <PaletteProvider markets={markets}>{children}</PaletteProvider>
       </body>
     </html>
   );
