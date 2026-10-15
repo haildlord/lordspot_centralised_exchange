@@ -9,23 +9,19 @@ import { TokenAvatar } from "@/components/ui/TokenAvatar";
 export type OrderSide = "buy" | "sell";
 export type OrderType = "limit" | "market";
 
-/** Everything the ticket knows when the user presses the button. Validate and send it however you like. */
 export interface OrderDraft {
   side: OrderSide;
   type: OrderType;
   price: string;
   quantity: string;
   orderValue: string;
-  /** 0–100 from the slider. */
   percent: number;
 }
 
 interface OrderFormProps {
-  /** Asset codes, used for the input icons and the button label. Placeholders until provided. */
   base?: string;
   quote?: string;
   isAuthenticated?: boolean;
-  /** Free balance shown under the tabs. "-" while logged out. */
   balance?: string;
   onSubmit?: (order: OrderDraft) => void;
   onSignUp?: () => void;
@@ -37,16 +33,8 @@ const TYPE_TABS = [
   { id: "market", label: "Market" },
 ] as const;
 
-/** Digits and a single dot only. */
 const cleanNumber = (v: string) => v.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
 
-/**
- * Order ticket. All state here is local; nothing is calculated.
- * Quantity ↔ order value ↔ slider are deliberately NOT linked — wire your maths in `onSubmit`
- * or by lifting the state up.
- *
- * TODO(api): balance, submit, and the auth buttons.
- */
 export function OrderForm({
   base,
   quote,
@@ -56,6 +44,7 @@ export function OrderForm({
   onSignUp,
   onLogIn,
 }: OrderFormProps) {
+
   const uid = useId();
   const [side, setSide] = useState<OrderSide>("buy");
   const [type, setType] = useState<OrderType>("limit");
@@ -88,7 +77,7 @@ export function OrderForm({
         onSubmit?.({ side, type, price, quantity, orderValue, percent });
       }}
     >
-      {/* buy / sell — one thumb slides and re-tints */}
+
       <div role="tablist" aria-label="Order side" data-side={side} className="side-toggle">
         <span aria-hidden className="side-thumb" />
         {(["buy", "sell"] as const).map((s) => (
@@ -112,7 +101,6 @@ export function OrderForm({
         <span className="num text-fg-2">{balance}</span>
       </div>
 
-      {/* keyed on the order type so the fields cross-fade when it changes */}
       <div key={type} className="flex animate-swap flex-col gap-4">
         {type === "limit" ? (
           <>
@@ -129,7 +117,6 @@ export function OrderForm({
         )}
       </div>
 
-      {/* ── actions ── */}
       {isAuthenticated ? (
         <button type="submit" className={cn("btn btn-lg w-full", side === "buy" ? "btn-up" : "btn-down")}>
           {side === "buy" ? "Buy" : "Sell"} {base}

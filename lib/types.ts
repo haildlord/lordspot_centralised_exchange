@@ -2,13 +2,6 @@ export type Side = "buy" | "sell";
 
 export type Trend = "up" | "down" | "flat";
 
-export interface BookLevel {
-  price: string;
-  size: string;
-  total: string;
-  depth: number;
-}
-
 export interface OrderBookData {
   asks: BookLevel[];
   bids: BookLevel[];
@@ -24,6 +17,11 @@ export interface RecentTrade {
   time: string;
   side: Side;
 }
+
+
+
+
+
 
 // * Backpack Types :
 
@@ -85,7 +83,6 @@ export interface Market {
   visible                     : boolean
 }
 
-
 export interface Ticker {
   firstPrice          : string;
   high                : string;
@@ -97,4 +94,20 @@ export interface Ticker {
   symbol              : string; // e.g. "NEAR_USDC"
   trades              : string;
   volume              : string;
+}
+
+export type OrderBookLevel = [string, string];
+
+export interface Depth {
+  asks          : OrderBookLevel[];
+  bids          : OrderBookLevel[];
+  lastUpdateId  : string;
+  timestamp     : number;
+}
+
+export interface BookLevel {
+  price: string;
+  size: string;
+  total: string;
+  depth: number;
 }
