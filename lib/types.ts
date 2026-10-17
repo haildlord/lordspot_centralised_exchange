@@ -19,10 +19,6 @@ export interface RecentTrade {
 }
 
 
-
-
-
-
 // * Backpack Types :
 
 export interface fFunction {
@@ -110,4 +106,22 @@ export interface BookLevel {
   size: string;
   total: string;
   depth: number;
+}
+
+export interface DepthPayload {
+  params: string
+}
+
+export interface DepthResponse {
+   stream  : string,                // "depth.SOL_USDC"
+   data    : {
+      E      : number,
+      T      : number,
+      U      : number,
+      a      : Record<string, string>[],
+      b      : Record<string, string>[],
+      e      : string,
+      s      : string,
+      u      : number   
+   }
 }

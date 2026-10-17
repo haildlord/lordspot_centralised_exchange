@@ -1,8 +1,31 @@
 "use client";
 
 import { cn } from "@/lib/cn";
-import { Depth } from "@/lib/types";
+import { Depth, DepthResponse, OrderBookLevel } from "@/lib/types";
 import { formatOrderBook } from "../../lib/format";
+import { useEffect, useState } from "react";
+import { SignalingManager } from "../../lib/SignalingManager";
+
+function mergeDepthLevels(
+  currentLevels: OrderBookLevel[],
+  deltaLevels: any[]
+): OrderBookLevel[] {
+  const map = new Map<string, string>(currentLevels);
+
+  for (const item of deltaLevels) {
+    const price = Array.isArray(item) ? item[0] : item?.price;
+    const size = Array.isArray(item) ? item[1] : item?.size;
+    if (price === undefined || size === undefined) continue;
+
+    if (parseFloat(size) === 0) {
+      map.delete(price);
+    } else {
+      map.set(price, size);
+    }
+  }
+
+  return Array.from(map.entries()) as OrderBookLevel[];
+}
 
 interface OrderBookProps {
   symbol: string;
@@ -68,9 +91,65 @@ const pressureBar = (buyPct: number) => (
 );
 
 
-export function OrderBook({ symbol, book, base, quote, tickSize, depth }: OrderBookProps) {
 
-  const {finalAsks, finalBids, midPrice, spread, buyPct} = formatOrderBook(depth);
+export function OrderBook({ symbol, book, base, quote, tickSize, depth }: OrderBookProps) {
+  
+  const [depthData, setDepthData] = useState<DepthResponse | null>();
+  const [currentBook, setCurrentBook] = useState<Depth>(depth);
+  const {finalAsks, finalBids, midPrice, spread, buyPct} = formatOrderBook(currentBook);
+
+  useEffect(() => {
+
+    const socket : SignalingManager = SignalingManager.getInstance();
+    const id     : number | null    = socket.subscribe("depth", symbol, setDepthData);
+
+    return () => {
+      if(id){
+        socket.unSubscribe("depth", symbol, id);
+      }
+    }
+
+  }, [symbol])
+
+
+  useEffect(() => {
+    setCurrentBook(depth);
+  }, [depth]);
+
+  function updateOrderBook(delta: any) {
+    const payload = delta?.data ?? delta;
+    const eventTime = payload?.T ?? payload?.E ?? payload?.timestamp;
+    const eventUpdateId = payload?.u ?? payload?.lastUpdateId;
+
+    setCurrentBook((prev) => {
+      // Stale check 1: Discard if event timestamp is older than or equal to current snapshot
+      if (eventTime && prev.timestamp && Number(eventTime) <= Number(prev.timestamp)) {
+        return prev;
+      }
+
+      // Stale check 2: Discard if event update sequence is older than or equal to current snapshot
+      if (eventUpdateId && prev.lastUpdateId && Number(eventUpdateId) <= Number(prev.lastUpdateId)) {
+        return prev;
+      }
+
+      const rawAsks = payload?.asks ?? payload?.a ?? [];
+      const rawBids = payload?.bids ?? payload?.b ?? [];
+
+      return {
+        ...prev,
+        timestamp: eventTime ? Number(eventTime) : prev.timestamp,
+        lastUpdateId: eventUpdateId ? String(eventUpdateId) : prev.lastUpdateId,
+        asks: mergeDepthLevels(prev.asks, rawAsks),
+        bids: mergeDepthLevels(prev.bids, rawBids),
+      };
+    });
+  }
+
+  useEffect(() => {
+    if (!depthData) return;
+    updateOrderBook(depthData);
+  }, [depthData]);
+
 
   return (
     <div className="flex h-full min-h-0 flex-col">
