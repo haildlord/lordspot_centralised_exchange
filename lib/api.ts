@@ -1,6 +1,6 @@
 import axios from "axios";
 import { cacheLife } from "next/cache";
-import { Market, Ticker, Depth } from "./types";
+import { Market, Ticker, Depth, TradesPayload } from "./types";
 
 export async function getMarkets(): Promise<Market[]> {
     "use cache";

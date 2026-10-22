@@ -19,14 +19,6 @@ interface TabsProps<T extends string> {
   className?: string;
 }
 
-/**
- * Controlled tab strip with arrow-key navigation and a single active marker
- * that glides between tabs (styles: .tab-list / .tab / .pill-tab / .tab-bar in globals.css).
- *
- * The marker is positioned from the measured active tab. Until the first
- * measurement lands (server render, first paint) the active tab paints its own
- * marker via CSS, so the swap is seamless.
- */
 export function Tabs<T extends string>({
   items,
   value,
@@ -35,6 +27,7 @@ export function Tabs<T extends string>({
   label,
   className,
 }: TabsProps<T>) {
+  
   const listRef = useRef<HTMLDivElement>(null);
   const [bar, setBar] = useState<{ x: number; w: number } | null>(null);
   const itemClass = variant === "pill" ? "pill-tab" : "tab";

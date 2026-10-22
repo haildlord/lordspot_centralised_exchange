@@ -113,7 +113,7 @@ export interface DepthPayload {
 }
 
 export interface DepthResponse {
-   stream  : string,                // "depth.SOL_USDC"
+   stream  : string,   // "depth.SOL_USDC"
    data    : {
       E      : number,
       T      : number,
@@ -124,4 +124,87 @@ export interface DepthResponse {
       s      : string,
       u      : number   
    }
+}
+
+export type OrderSide = "buy" | "sell";
+export type OrderType = "limit" | "market";
+
+export interface OrderDraft {
+  side: OrderSide;
+  type: OrderType;
+  price: string;
+  quantity: string;
+  orderValue: string;
+  percent: number;
+}
+
+export interface OrderFormProps {
+  symbol?: string;
+  initialPrice?: string;
+  base?: string;
+  quote?: string;
+  isAuthenticated?: boolean;
+  balance?: string;
+  onSubmit?: (order: OrderDraft) => void;
+  onSignUp?: () => void;
+  onLogIn?: () => void;
+}
+
+export interface OrderBookProps {
+  symbol: string;
+  base?: string;
+  quote?: string;
+  tickSize?: string;
+  book?: any;
+  depth: Depth
+}
+
+export interface Trade {
+  E : number
+  V : string,
+  c : string
+  e : string,
+  h : string,
+  l : string,
+  n : number,
+  o : string,
+  s : string,
+  v : string
+}
+
+export interface Klines {
+  close         : string,  // "145.84"
+  end           : string,  // "2024-03-09 17:00:00",
+  high          : string,  // "147.54"
+  low           : string,  // "145.61"
+  open          : string,  // "147.35"
+  quoteVolume   : string,  // "27694964.2666"
+  start         : string,  // "2024-03-09 16:00:00",
+  trades        : string,  // "238143" 
+  volume        : string   // "189235.28"
+}
+
+export interface TradeResponse {
+  stream  : string,
+  data    : {
+      E   : number,
+      T   : number,
+      a   : string,
+      b   : string,
+      e   : string,
+      m   : boolean,
+      p   : string,
+      q   : string,
+      s   : string,
+      t   : number
+  }
+}
+
+export interface TradesPayload {
+  id            : number,
+  isBuyerMaker  : boolean,
+  price         : string,
+  quantity      : string,
+  quoteQuantity : string,
+  timestamp     : number
 }

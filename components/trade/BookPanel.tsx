@@ -15,7 +15,6 @@ type BookTab = (typeof TABS)[number]["id"];
 export function BookPanel({
   symbol,
   book,
-  trades,
   base,
   quote,
   tickSize,
@@ -23,7 +22,6 @@ export function BookPanel({
 }: {
   symbol: string;
   book?: OrderBookData;
-  trades?: RecentTrade[];
   base?: string;
   quote?: string;
   tickSize?: string;
@@ -38,7 +36,7 @@ export function BookPanel({
         {tab === "book" ? (
           <OrderBook symbol={symbol} book={book} base={base} quote={quote} tickSize={tickSize} depth={depth} />
         ) : (
-          <RecentTrades trades={trades} base={base} quote={quote} />
+          <RecentTrades base={base} quote={quote} symbol={symbol}/>
         )}
       </div>
     </section>

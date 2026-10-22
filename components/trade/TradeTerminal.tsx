@@ -9,26 +9,24 @@ interface TradeTerminalProps {
   market?: Market;
   ticker?: Ticker;
   book?: OrderBookData;
-  trades?: RecentTrade[];
   tickSize?: string;
   depth: Depth;
 }
 
-export function TradeTerminal({ symbol, market, ticker, book, trades, tickSize, depth }: TradeTerminalProps) {
+export function TradeTerminal({ symbol, market, ticker, book, tickSize, depth }: TradeTerminalProps) {
   return (
     <div className="terminal">
       <div className="t-ticker min-w-0">
         <TickerBar key={symbol} symbol={symbol} market={market} ticker={ticker} />
       </div>
       <div className="t-chart grid min-h-0 min-w-0">
-        <ChartPanel />
+        <ChartPanel symbol={symbol} />
       </div>
       <div className="t-book grid min-h-0 min-w-0">
         <BookPanel
           key={symbol}
           symbol={symbol}
           book={book}
-          trades={trades}
           base={market?.baseSymbol}
           quote={market?.quoteSymbol}
           tickSize={tickSize ?? market?.filters.price.tickSize}
@@ -36,7 +34,13 @@ export function TradeTerminal({ symbol, market, ticker, book, trades, tickSize, 
         />
       </div>
       <div className="t-form min-w-0">
-        <OrderForm key={symbol} base={market?.baseSymbol} quote={market?.quoteSymbol} />
+        <OrderForm
+          key={symbol}
+          symbol={symbol}
+          initialPrice={ticker?.lastPrice}
+          base={market?.baseSymbol}
+          quote={market?.quoteSymbol}
+        />
       </div>
     </div>
   );

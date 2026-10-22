@@ -2,14 +2,16 @@
 
 import { cn } from "@/lib/cn";
 import { Depth, DepthResponse, OrderBookLevel } from "@/lib/types";
-import { formatOrderBook } from "../../lib/format";
-import { useEffect, useState } from "react";
+import { formatOrderBook} from "../../lib/format";
+import { OrderBookProps,  Trade } from "../../lib/types";
+import { useEffect, useState, useRef } from "react";
 import { SignalingManager } from "../../lib/SignalingManager";
 
 function mergeDepthLevels(
   currentLevels: OrderBookLevel[],
   deltaLevels: any[]
 ): OrderBookLevel[] {
+  
   const map = new Map<string, string>(currentLevels);
 
   for (const item of deltaLevels) {
@@ -27,15 +29,6 @@ function mergeDepthLevels(
   return Array.from(map.entries()) as OrderBookLevel[];
 }
 
-interface OrderBookProps {
-  symbol: string;
-  base?: string;
-  quote?: string;
-  tickSize?: string;
-  book?: any;
-  depth: Depth
-}
-
 const depthHeaders = (
   <div className="grid shrink-0 grid-cols-3 gap-x-4 px-4 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-fg-3 border-b border-line/40">
     <span>Price</span>
@@ -46,7 +39,7 @@ const depthHeaders = (
 
 const eachRow = (price: string, size: string, total: string, depth: number, side: "ask" | "bid") => {
   return (
-    <div className="relative grid grid-cols-3 gap-x-4 items-center px-4 h-[28px] text-[13px] hover:bg-white/[0.04] transition-colors">
+    <div key={price} className="relative grid grid-cols-3 gap-x-4 items-center px-4 h-[28px] text-[13px] hover:bg-white/[0.04] transition-colors">
       <span
         className={cn("absolute inset-y-0.5 right-0 rounded-l", side === "ask" ? "bg-down/15" : "bg-up/15")}
         style={{ width: `${depth * 100}%` }}
@@ -60,11 +53,15 @@ const eachRow = (price: string, size: string, total: string, depth: number, side
   );
 };
 
-const midPriceSection = (midPrice : string, spread : string) => (
+const midPriceSection = (midPrice: string, spread: string, trend: "up" | "down" = "up") => (
   <div className="flex shrink-0 items-center gap-2 border-y border-line/70 bg-panel-2/70 px-4 py-2.5 my-1">
-
-    <span className="num text-[18px] font-semibold leading-none">
-    {midPrice}
+    <span
+      className={cn(
+        "num text-[18px] font-semibold leading-none flex items-center gap-1.5",
+        trend === "up" ? "text-up" : "text-down"
+      )}
+    >
+      {midPrice}
     </span>
     
     <span className="text-[11px] text-fg-3 ml-auto">
@@ -96,25 +93,41 @@ export function OrderBook({ symbol, book, base, quote, tickSize, depth }: OrderB
   
   const [depthData, setDepthData] = useState<DepthResponse | null>();
   const [currentBook, setCurrentBook] = useState<Depth>(depth);
-  const {finalAsks, finalBids, midPrice, spread, buyPct} = formatOrderBook(currentBook);
+  const {finalAsks, finalBids, spread, buyPct} = formatOrderBook(currentBook);
+  const [tickerInfo, setTickerInfo] = useState<Trade>();
+  const [priceTrend, setPriceTrend] = useState<"up" | "down">("up");
+  const prevPriceRef = useRef<number | null>(null);
 
   useEffect(() => {
 
-    const socket : SignalingManager = SignalingManager.getInstance();
-    const id     : number | null    = socket.subscribe("depth", symbol, setDepthData);
+    const socket  : SignalingManager = SignalingManager.getInstance();
+    const id      : number | null    = socket.subscribe("depth", symbol, setDepthData);
+    const priceId : number | null   = socket.subscribe("ticker", symbol, setTickerInfo);
 
     return () => {
-      if(id){
+      if(id && priceId){
         socket.unSubscribe("depth", symbol, id);
+        socket.unSubscribe("ticker", symbol, priceId);
       }
     }
 
   }, [symbol])
 
-
   useEffect(() => {
     setCurrentBook(depth);
   }, [depth]);
+
+  useEffect(() => {
+    if (!tickerInfo?.c) return;
+    const current = Number(tickerInfo.c);
+    if (prevPriceRef.current !== null) {
+      if (current > prevPriceRef.current) setPriceTrend("up");
+      else if (current < prevPriceRef.current) setPriceTrend("down");
+    }
+    prevPriceRef.current = current;
+  }, [tickerInfo?.c]);
+
+
 
   function updateOrderBook(delta: any) {
     const payload = delta?.data ?? delta;
@@ -122,12 +135,10 @@ export function OrderBook({ symbol, book, base, quote, tickSize, depth }: OrderB
     const eventUpdateId = payload?.u ?? payload?.lastUpdateId;
 
     setCurrentBook((prev) => {
-      // Stale check 1: Discard if event timestamp is older than or equal to current snapshot
       if (eventTime && prev.timestamp && Number(eventTime) <= Number(prev.timestamp)) {
         return prev;
       }
-
-      // Stale check 2: Discard if event update sequence is older than or equal to current snapshot
+      
       if (eventUpdateId && prev.lastUpdateId && Number(eventUpdateId) <= Number(prev.lastUpdateId)) {
         return prev;
       }
@@ -162,7 +173,7 @@ export function OrderBook({ symbol, book, base, quote, tickSize, depth }: OrderB
           {finalAsks.map((item) => eachRow(item.price, item.size, item.total, item.depth, "ask")).reverse()}
         </div>
 
-        {midPriceSection(midPrice, spread)}
+        {midPriceSection(tickerInfo?.c ?? "—", spread, priceTrend)}
 
         <div className="flex flex-col">
           {finalBids.map((item) => eachRow(item.price, item.size, item.total, item.depth, "bid"))}

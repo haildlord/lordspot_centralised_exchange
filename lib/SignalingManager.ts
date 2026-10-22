@@ -69,10 +69,17 @@ export class SignalingManager {
         }
     }
 
-    public subscribe(type: string, market: string, cb : Callback) : number | null {
+    private getServiceTopic(type: string, market: string): string {
+        const lower = type.toLowerCase();
+        const upper = market.toUpperCase();
+        if (lower === "depth") {
+            return `depth.200ms.${upper}`;
+        }
+        return `${lower}.${upper}`;
+    }
 
-        type = type.toLowerCase();
-        const service = `${type.toLowerCase()}.${market.toUpperCase()}`;
+    public subscribe(type: string, market: string, cb : Callback) : number | null {
+        const service = this.getServiceTopic(type, market);
 
         if (!this.callBackList[service]) {
             this.callBackList[service] = {};
@@ -90,9 +97,8 @@ export class SignalingManager {
     } 
     
     public unSubscribe(type : string, market: string, id : number) : boolean {
-        
-        type = type.toLowerCase();
-        const service = `${type.toLowerCase()}.${market.toUpperCase()}`;
+        const service = this.getServiceTopic(type, market);
+     
 
         if (!this.callBackList[service] || !this.callBackList[service][id]) {
             return false;

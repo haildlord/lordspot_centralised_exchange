@@ -1,32 +1,12 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { useId, useState, useEffect, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { Tabs } from "@/components/ui/Tabs";
 import { TokenAvatar } from "@/components/ui/TokenAvatar";
-
-export type OrderSide = "buy" | "sell";
-export type OrderType = "limit" | "market";
-
-export interface OrderDraft {
-  side: OrderSide;
-  type: OrderType;
-  price: string;
-  quantity: string;
-  orderValue: string;
-  percent: number;
-}
-
-interface OrderFormProps {
-  base?: string;
-  quote?: string;
-  isAuthenticated?: boolean;
-  balance?: string;
-  onSubmit?: (order: OrderDraft) => void;
-  onSignUp?: () => void;
-  onLogIn?: () => void;
-}
+import { SignalingManager } from "@/lib/SignalingManager";
+import { OrderType, OrderSide, OrderFormProps} from "../../lib/types"
 
 const TYPE_TABS = [
   { id: "limit", label: "Limit" },
@@ -36,6 +16,8 @@ const TYPE_TABS = [
 const cleanNumber = (v: string) => v.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
 
 export function OrderForm({
+  symbol,
+  initialPrice,
   base,
   quote,
   isAuthenticated = false,
@@ -48,10 +30,24 @@ export function OrderForm({
   const uid = useId();
   const [side, setSide] = useState<OrderSide>("buy");
   const [type, setType] = useState<OrderType>("limit");
-  const [price, setPrice] = useState("");
+  const [price, setPrice] = useState(initialPrice ?? "");
   const [quantity, setQuantity] = useState("");
   const [orderValue, setOrderValue] = useState("");
   const [percent, setPercent] = useState(0);
+
+  useEffect(() => {
+    
+    if (!symbol) return;
+    const socket = SignalingManager.getInstance();
+    const id = socket.subscribe("ticker", symbol, (data) => {
+      setPrice((prev) => (!prev && data?.c ? data.c : prev));
+    });
+
+    return () => {
+      if (id) socket.unSubscribe("ticker", symbol, id);
+    };
+
+  }, [symbol]);
 
   const accent = side === "buy" ? "up" : "down";
   const quoteIcon = <TokenAvatar baseSymbol={quote ?? ""} size={24} />;
