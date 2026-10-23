@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Market, Ticker } from "@/lib/types";
+import type { Market, Ticker, Trend } from "@/lib/types";
 import { SearchTrigger } from "@/components/search/SearchTrigger";
 import { PairLabel } from "@/components/ui/PairLabel";
 import { TREND_TEXT } from "@/components/ui/trend";
@@ -57,6 +57,9 @@ export function Hero({ trending = [], tickers }: { trending?: Market[]; tickers?
             <span className="mr-1 text-fg-3">Trending</span>
             {trending.map((m) => {
               const t = tickers?.[m.symbol];
+              const pct = Number(t?.priceChangePercent ?? 0);
+              const trend: Trend = pct > 0 ? "up" : pct < 0 ? "down" : "flat";
+              const changePct = t?.priceChangePercent ? `${pct > 0 ? "+" : ""}${(pct * 100).toFixed(2)}%` : "";
               return (
                 <Link
                   key={m.symbol}
@@ -64,7 +67,7 @@ export function Hero({ trending = [], tickers }: { trending?: Market[]; tickers?
                   className="inline-flex items-center gap-2 rounded-full border border-line bg-panel/60 px-3.5 py-1.5 transition duration-300 hover:-translate-y-0.5 hover:border-gold-500/40 hover:bg-raise"
                 >
                   <PairLabel market={m} />
-                  {t && <span className={`num ${TREND_TEXT[t.trend]}`}>{t.changePct}</span>}
+                  {t && <span className={`num ${TREND_TEXT[trend]}`}>{changePct}</span>}
                 </Link>
               );
             })}

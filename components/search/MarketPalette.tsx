@@ -13,7 +13,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { ArrowDown, ChartCandlestick, Coins, LayoutGrid, Search, TrendingUp, type LucideIcon } from "lucide-react";
-import type { Market, Ticker } from "@/lib/types";
+import type { Market, Ticker, Trend } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { PairLabel } from "@/components/ui/PairLabel";
 import { TokenAvatar } from "@/components/ui/TokenAvatar";
@@ -229,6 +229,9 @@ export function MarketPalette({
             {results.map((m, i) => {
               const isActive = i === activeIndex;
               const t = tickers?.[m.symbol];
+              const pct = Number(t?.priceChangePercent ?? 0);
+              const trend: Trend = pct > 0 ? "up" : pct < 0 ? "down" : "flat";
+              const changePct = t?.priceChangePercent ? `${pct > 0 ? "+" : ""}${(pct * 100).toFixed(2)}%` : EMPTY;
               return (
                 <li
                   key={m.symbol}
@@ -259,8 +262,8 @@ export function MarketPalette({
                       </span>
                     </span>
                     <span className="num text-right text-[15px] font-medium text-fg">{t?.lastPrice ?? EMPTY}</span>
-                    <span className={cn("num text-right text-[14px]", TREND_TEXT[t?.trend ?? "flat"])}>
-                      {t?.changePct ?? EMPTY}
+                    <span className={cn("num text-right text-[14px]", TREND_TEXT[trend])}>
+                      {changePct}
                     </span>
                     <span className="num text-right text-[14px] text-fg-2">{t?.volume ?? EMPTY}</span>
                   </Link>

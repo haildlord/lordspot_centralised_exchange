@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { TerminalSkeleton, TradeTerminal } from "@/components/trade/TradeTerminal";
-import { getDepth } from "@/lib/api";
+import { getDepth, getMarkets, getTickers } from "@/lib/api";
 import { Depth } from "@/lib/types";
 
 type Params = PageProps<"/trade/[market]">["params"];
@@ -14,9 +14,23 @@ export default function TradePage({ params }: PageProps<"/trade/[market]">) {
 }
 
 async function Terminal({ params }: { params: Params }) {
-  
-  const { market } = await params;
-  const depth : Depth = await getDepth(market);
+  const { market: symbol } = await params;
 
-  return <TradeTerminal symbol={market} depth={depth}/>;
+  const [depth, markets, tickers] = await Promise.all([
+    getDepth(symbol),
+    getMarkets(),
+    getTickers(),
+  ]);
+
+  const marketInfo = markets.find((m) => m.symbol === symbol);
+  const tickerInfo = tickers.find((t) => t.symbol === symbol);
+
+  return (
+    <TradeTerminal
+      symbol={symbol}
+      depth={depth}
+      market={marketInfo}
+      ticker={tickerInfo}
+    />
+  );
 }

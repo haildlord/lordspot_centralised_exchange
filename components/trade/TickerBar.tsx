@@ -1,21 +1,17 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
-import type { Market, Ticker } from "@/lib/types";
+import type { Market, Ticker, Trend } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { usePalette } from "@/components/search/PaletteProvider";
 import { PairLabel } from "@/components/ui/PairLabel";
 import { TokenAvatar } from "@/components/ui/TokenAvatar";
 import { TREND_TEXT } from "@/components/ui/trend";
+import { SignalingManager } from "@/lib/SignalingManager";
 
 const EMPTY = "—";
 
-/**
- * Strip above the chart: market selector (opens the search palette), last price
- * and 24h stats. Without `ticker` every value shows a dash; without `market` the
- * raw `symbol` from the url is shown as the title.
- */
 export function TickerBar({
   symbol,
   market,
@@ -26,7 +22,80 @@ export function TickerBar({
   ticker?: Ticker;
 }) {
   const { open, isOpen } = usePalette();
-  const tone = TREND_TEXT[ticker?.trend ?? "flat"];
+  const [currentTicker, setCurrentTicker] = useState<Ticker | undefined>(ticker);
+
+  // Sync state if initial ticker changes (e.g. user navigated to a new market)
+  useEffect(() => {
+    setCurrentTicker(ticker);
+  }, [ticker]);
+
+  // Subscribe to real-time WebSocket ticker & trade updates
+  useEffect(() => {
+    if (!symbol) return;
+    const socket = SignalingManager.getInstance();
+
+    // 1. Subscribe to 24h ticker updates
+    const tickerSubId = socket.subscribe("ticker", symbol, (data: any) => {
+      if (!data) return;
+      setCurrentTicker((prev) => {
+        const lastPrice = data.c ?? prev?.lastPrice ?? "0";
+        const priceChange = data.p ?? prev?.priceChange ?? "0";
+        const priceChangePercent = data.P ?? prev?.priceChangePercent ?? "0";
+        const high = data.h ?? prev?.high ?? "0";
+        const low = data.l ?? prev?.low ?? "0";
+        const volume = data.v ?? prev?.volume ?? "0";
+
+        return {
+          symbol,
+          firstPrice: data.o ?? prev?.firstPrice ?? "0",
+          high,
+          low,
+          lastPrice,
+          priceChange,
+          priceChangePercent,
+          volume,
+          quoteVolume: data.V ?? prev?.quoteVolume ?? "0",
+          trades: prev?.trades ?? "0",
+        };
+      });
+    });
+
+    // 2. Also subscribe to trade ticks for instant sub-second lastPrice updates
+    const tradeSubId = socket.subscribe("trade", symbol, (data: any) => {
+      if (!data?.p) return;
+      setCurrentTicker((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          lastPrice: data.p,
+        };
+      });
+    });
+
+    return () => {
+      if (tickerSubId) socket.unSubscribe("ticker", symbol, tickerSubId);
+      if (tradeSubId) socket.unSubscribe("trade", symbol, tradeSubId);
+    };
+  }, [symbol]);
+
+  // Calculate percentage and trend
+  const pctNum = Number(currentTicker?.priceChangePercent ?? 0);
+  const changeNum = Number(currentTicker?.priceChange ?? 0);
+
+  const trend: Trend = changeNum > 0 ? "up" : changeNum < 0 ? "down" : "flat";
+  const tone = TREND_TEXT[trend];
+
+  const changeFormatted = currentTicker?.priceChange
+    ? `${changeNum > 0 ? "+" : ""}${changeNum.toFixed(2)}`
+    : EMPTY;
+
+  const changePctFormatted = currentTicker?.priceChangePercent
+    ? `(${pctNum > 0 ? "+" : ""}${(pctNum * 100).toFixed(2)}%)`
+    : EMPTY;
+
+  const volumeFormatted = currentTicker?.volume
+    ? Number(currentTicker.volume).toLocaleString(undefined, { maximumFractionDigits: 2 })
+    : EMPTY;
 
   return (
     <section aria-label="Market summary" className="panel no-scrollbar @container flex items-center gap-x-5 overflow-x-auto px-4 py-2.5">
@@ -48,15 +117,17 @@ export function TickerBar({
       </button>
 
       <span className={cn("num shrink-0 text-[26px] font-semibold leading-none", tone)}>
-        {ticker?.lastPrice ?? EMPTY}
+        {currentTicker?.lastPrice ?? EMPTY}
       </span>
 
       <Stat label="24H Change">
-        <span className={tone}>{ticker ? `${ticker.change} ${ticker.changePct}` : EMPTY}</span>
+        <span className={tone}>
+          {currentTicker ? `${changeFormatted} ${changePctFormatted}` : EMPTY}
+        </span>
       </Stat>
-      <Stat label="24H High" className="@max-[620px]:hidden">{ticker?.high ?? EMPTY}</Stat>
-      <Stat label="24H Low" className="@max-[720px]:hidden">{ticker?.low ?? EMPTY}</Stat>
-      <Stat label="24H Volume" className="@max-[860px]:hidden">{ticker?.volume ?? EMPTY}</Stat>
+      <Stat label="24H High" className="@max-[620px]:hidden">{currentTicker?.high ?? EMPTY}</Stat>
+      <Stat label="24H Low" className="@max-[720px]:hidden">{currentTicker?.low ?? EMPTY}</Stat>
+      <Stat label="24H Volume" className="@max-[860px]:hidden">{volumeFormatted}</Stat>
     </section>
   );
 }
